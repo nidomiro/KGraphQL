@@ -8,8 +8,8 @@ import com.apurebase.kgraphql.expect
 import com.apurebase.kgraphql.extract
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 @Specification("2.9 Input Values")
 class InputValuesSpecificationTest {
@@ -115,7 +115,7 @@ class InputValuesSpecificationTest {
     }
 
     @Test
-    @Ignore("literal object input values are not implemented yet")
+    @Disabled("literal object input values are not implemented yet")
     @Specification("2.9.8 Object Value")
     fun `Literal object input value`(){
         val response = deserialize(schema.execute("{Object(value: {number: 232, description: \"little number\"}){number, description}}"))
@@ -126,7 +126,7 @@ class InputValuesSpecificationTest {
     }
 
     @Test
-    @Ignore("literal object input values are not implemented yet")
+    @Disabled("literal object input values are not implemented yet")
     @Specification("2.9.8 Object Value")
     fun `Literal object input value with list field`(){
         val response = deserialize(schema.execute(

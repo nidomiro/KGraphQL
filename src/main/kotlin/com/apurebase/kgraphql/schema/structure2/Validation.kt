@@ -15,14 +15,14 @@ fun validatePropertyArguments(parentType: Type, field: Field, requestNode: Selec
     val argumentValidationExceptions = field.validateArguments(requestNode.arguments, parentType.name)
 
     if (argumentValidationExceptions.isNotEmpty()) {
-        throw ValidationException(argumentValidationExceptions.fold("", { sum, exc -> sum + "${exc.message}; " }))
+        throw ValidationException(argumentValidationExceptions.fold("") { sum, exc -> sum + "${exc.message}; " })
     }
 }
 
 fun Field.validateArguments(selectionArgs: Arguments?, parentTypeName : String?) : List<ValidationException> {
-    if(this.arguments.isEmpty() && selectionArgs?.isNotEmpty() ?: false){
+    if (!(this.arguments.isNotEmpty() || selectionArgs?.isNotEmpty() != true)) {
         return listOf(ValidationException(
-                "Property $name on type $parentTypeName has no arguments, found: ${selectionArgs?.map { it.key }}")
+            "Property $name on type $parentTypeName has no arguments, found: ${selectionArgs.map { it.key }}")
         )
     }
 
@@ -56,7 +56,7 @@ fun validateUnionRequest(field: Field.Union<*>, selectionNode: SelectionNode) {
         it is Fragment.Inline || it is Fragment.External || it.key == "__typename"
     }
 
-    if (illegalChildren?.any() ?: false) {
+    if (illegalChildren?.any() == true) {
         throw RequestException(
                 "Invalid selection set with properties: $illegalChildren " +
                         "on union type property ${field.name} : ${field.returnType.possibleTypes.map { it.name }}"

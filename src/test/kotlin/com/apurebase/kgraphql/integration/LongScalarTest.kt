@@ -7,7 +7,7 @@ import com.apurebase.kgraphql.extract
 import com.apurebase.kgraphql.specification.typesystem.ScalarsSpecificationTest
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 
 class LongScalarTest {

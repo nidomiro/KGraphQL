@@ -25,7 +25,7 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.*
 
 /**

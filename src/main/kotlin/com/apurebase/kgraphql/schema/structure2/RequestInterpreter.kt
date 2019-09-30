@@ -2,6 +2,7 @@ package com.apurebase.kgraphql.schema.structure2
 
 import com.apurebase.kgraphql.ExecutionException
 import com.apurebase.kgraphql.RequestException
+import com.apurebase.kgraphql.request.Arguments
 import com.apurebase.kgraphql.request.Operation
 import com.apurebase.kgraphql.request.OperationVariable
 import com.apurebase.kgraphql.request.graph.DirectiveInvocation
@@ -11,6 +12,8 @@ import com.apurebase.kgraphql.schema.directive.Directive
 import com.apurebase.kgraphql.schema.execution.Execution
 import com.apurebase.kgraphql.schema.execution.ExecutionPlan
 import com.apurebase.kgraphql.schema.execution.TypeCondition
+import com.apurebase.kgraphql.schema.model.FunctionWrapper
+import java.util.concurrent.ConcurrentMap
 
 
 class RequestInterpreter(val schemaModel: SchemaModel) {
@@ -91,24 +94,51 @@ class RequestInterpreter(val schemaModel: SchemaModel) {
     }
 
     private fun Type.handleSelection(selectionNode: SelectionNode, variables: List<OperationVariable>? = null): Execution.Node {
-        val field = this[selectionNode.key]
+        val field = this[selectionNode.key] ?: throw RequestException("property ${selectionNode.key} on $name does not exist")
 
-        return when(field){
-            null -> throw RequestException("property ${selectionNode.key} on ${this.name} does not exist")
-            is Field.Union<*> -> handleUnion(field, selectionNode)
+        val batchedLoaders = selectionNode
+            .children
+            ?.filter { field.returnType.unwrapped()[it.key] is Field.DataLoader<*, *, *> }
+            ?.map {
+                val childField = field.returnType.unwrapped()[it.key] as Field.DataLoader<*, *, *>
+                val cache = childField.kql.cache
+
+                val dlt = Execution.DLT(
+                    name = childField.name,
+                    prepare = childField.kql.prepare as FunctionWrapper<Any?>,
+                    loader = childField.kql.loader,
+                    arguments = it.arguments,
+                    cache = cache as ConcurrentMap<Any?, Any?>
+                )
+                childField to dlt
+            }
+            ?.toMap()
+
+
+        return when {
+            !batchedLoaders.isNullOrEmpty() -> Execution.DataLoad(
+                childFields = batchedLoaders,
+                field = field,
+                children = handleChildren(field, selectionNode),
+                key = selectionNode.key,
+                alias = selectionNode.alias,
+                arguments = selectionNode.arguments,
+                directives = selectionNode.directives?.lookup(),
+                variables = variables
+            )
+            field is Field.Union<*> -> handleUnion(field, selectionNode)
             else -> {
                 validatePropertyArguments(this, field, selectionNode)
 
                 return Execution.Node(
-                        field = field,
-                        children = handleChildren(field, selectionNode),
-                        key = selectionNode.key,
-                        alias = selectionNode.alias,
-                        arguments = selectionNode.arguments,
-                        directives = selectionNode.directives?.lookup(),
-                        variables = variables
+                    field = field,
+                    children = handleChildren(field, selectionNode),
+                    key = selectionNode.key,
+                    alias = selectionNode.alias,
+                    arguments = selectionNode.arguments,
+                    directives = selectionNode.directives?.lookup(),
+                    variables = variables
                 )
-
             }
         }
     }

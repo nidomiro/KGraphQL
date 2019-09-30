@@ -8,7 +8,6 @@ import com.apurebase.kgraphql.extract
 import com.apurebase.kgraphql.integration.BaseSchemaTest
 import com.apurebase.kgraphql.integration.BaseSchemaTest.Companion.INTROSPECTION_QUERY
 import com.apurebase.kgraphql.schema.introspection.TypeKind
-import junit.framework.Assert.fail
 import org.amshove.kluent.shouldNotContain
 import org.hamcrest.CoreMatchers.anyOf
 import org.hamcrest.CoreMatchers.equalTo
@@ -17,7 +16,8 @@ import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.collection.IsEmptyCollection.empty
-import org.junit.Test
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 
 
 class IntrospectionSpecificationTest {
@@ -282,7 +282,7 @@ class IntrospectionSpecificationTest {
         val typenames = types.map { type -> type["name"] as String }.sorted()
 
         for(i in typenames.indices){
-            if(typenames[i] == typenames.getOrNull(i + 1)) fail()
+            if(typenames[i] == typenames.getOrNull(i + 1)) fail("")
         }
     }
 
