@@ -1,7 +1,5 @@
 package com.apurebase.kgraphql.schema.jol.ast
 
-import com.apurebase.kgraphql.schema.jol.ast.TokenKindEnum.*
-
 /**
  * The enum type representing the token kinds values.
  */
@@ -45,4 +43,6 @@ enum class TokenKindEnum(val str: String) {
         PIPE,
         BRACE_R
     )
+
+    override fun toString() = str
 }

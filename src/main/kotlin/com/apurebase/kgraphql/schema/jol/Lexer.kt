@@ -71,8 +71,7 @@ data class Lexer(
         fun tok(
             kind: TokenKindEnum,
             start: Int = pos,
-            end: Int = pos + 1,
-            col: Int = 0
+            end: Int = pos + 1
         ) = Token(
             kind = kind,
             start = start,
@@ -83,7 +82,7 @@ data class Lexer(
         )
 
         if (pos >= bodyLength) {
-            return tok(EOF, bodyLength, bodyLength, col = col)
+            return tok(EOF, bodyLength, bodyLength)
         }
 
 
