@@ -1,14 +1,15 @@
 package com.apurebase.kgraphql.schema.jol.ast
 
-sealed class ValueNode(override val loc: Location?): ASTNode {
+sealed class ValueNode(override val loc: Location?): ASTNode() {
+
     class VariableNode(val name: NameNode, loc: Location?): ValueNode(loc)
 
-    class IntValueNode(val value: Int, loc: Location?): ValueNode(loc) {
-        constructor(value: String, loc: Location?) : this(value.toInt(), loc)
+    class NumberValueNode(val value: Long, loc: Location?): ValueNode(loc) {
+        constructor(value: String, loc: Location?) : this(value.toLong(), loc)
     }
 
-    class FloatValueNode(val value: Float, loc: Location?): ValueNode(loc) {
-        constructor(value: String, loc: Location?) : this(value.toFloat(), loc)
+    class DoubleValueNode(val value: Double, loc: Location?): ValueNode(loc) {
+        constructor(value: String, loc: Location?) : this(value.toDouble(), loc)
     }
 
     class StringValueNode(val value: String, val block: Boolean?, loc: Location?): ValueNode(loc)
@@ -28,4 +29,17 @@ sealed class ValueNode(override val loc: Location?): ASTNode {
             value: ValueNode
         ): ValueNode(loc)
     }
+
+    val valueNodeName: String get() = when(this) {
+        is VariableNode -> name.value
+        is NumberValueNode -> "$value"
+        is DoubleValueNode -> "$value"
+        is StringValueNode -> "\"$value\""
+        is BooleanValueNode -> "$value"
+        is NullValueNode -> "null"
+        is EnumValueNode -> value
+        is ListValueNode -> values.joinToString(prefix = "[", postfix = "]")
+        else -> TODO("Add support for object")
+    }
+
 }

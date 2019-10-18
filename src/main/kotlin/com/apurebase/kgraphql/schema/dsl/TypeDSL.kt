@@ -59,7 +59,7 @@ open class TypeDSL<T : Any>(
         extensionProperties.add(dsl.toKQLProperty())
     }
 
-    inline fun <K, reified R> dataProperty(name: String, noinline block: DataLoaderDSL<T, K, R>.() -> Unit) {
+    inline fun <KEY, reified TYPE> dataProperty(name: String, noinline block: DataLoaderDSL<T, KEY, TYPE>.() -> Unit) {
         val dsl = DataLoaderDSL(name, block)
         dataloadedExtensionProperties.add(dsl.toKQLProperty())
     }
@@ -87,14 +87,14 @@ open class TypeDSL<T : Any>(
 
     internal fun toKQLObject() : TypeDef.Object<T> {
         return TypeDef.Object(
-                name = name,
-                kClass = kClass,
-                kotlinProperties = describedKotlinProperties.toMap(),
-                extensionProperties = extensionProperties.toList(),
-                dataloadExtensionProperties = dataloadedExtensionProperties.toList(),
-                unionProperties = unionProperties.toList(),
-                transformations = transformationProperties.associate { it.kProperty to it },
-                description = description
+            name = name,
+            kClass = kClass,
+            kotlinProperties = describedKotlinProperties.toMap(),
+            extensionProperties = extensionProperties.toList(),
+            dataloadExtensionProperties = dataloadedExtensionProperties.toList(),
+            unionProperties = unionProperties.toList(),
+            transformations = transformationProperties.associateBy { it.kProperty },
+            description = description
         )
     }
 }

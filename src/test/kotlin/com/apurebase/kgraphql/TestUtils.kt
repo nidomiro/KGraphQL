@@ -80,9 +80,9 @@ inline fun <reified T: Exception> expect(message: String? = null, block: () -> U
     }
 }
 
-fun executeEqualQueries(schema: Schema, expected: Map<*,*>, vararg queries : String){
+fun executeEqualQueries(schema: Schema, expected: Map<*,*>, vararg queries : String) {
     queries.map { request ->
-        schema.execute(request).deserialize()
+        schema.executeBlocking(request).deserialize()
     }.forEach { map ->
         map shouldEqual expected
     }

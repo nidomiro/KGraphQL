@@ -52,7 +52,7 @@ class QueryTest : BaseSchemaTest() {
 
     @Test
     fun `query with invalid field name`(){
-        expect<RequestException>("property favDish on Director does not exist"){
+        expect<RequestException>("Property favDish on Director does not exist"){
             execute("{film{title, director{name, favDish}}}")
         }
     }
@@ -95,7 +95,7 @@ class QueryTest : BaseSchemaTest() {
 
     @Test
     fun `query with ignored property`(){
-        expect<RequestException>("property author on Scenario does not exist"){
+        expect<RequestException>("Property author on Scenario does not exist"){
             execute("{scenario{author, content}}")
         }
     }

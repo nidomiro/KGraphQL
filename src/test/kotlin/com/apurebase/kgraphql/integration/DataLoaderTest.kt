@@ -7,6 +7,7 @@ import com.apurebase.kgraphql.schema.DefaultSchema
 import com.apurebase.kgraphql.schema.dsl.SchemaBuilder
 import org.amshove.kluent.shouldEqual
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.RepeatedTest
 import java.time.Duration.ofSeconds
 import java.util.concurrent.atomic.AtomicInteger
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 val timeout = ofSeconds(12)!!
 const val repeatTimes = 3
 
+@Disabled("Not supported yet!")
 class DataLoaderTest {
 
     data class Tree(val id: Int, val value: String)
@@ -130,7 +132,7 @@ class DataLoaderTest {
 
             val query = "{tree {id, child(buzz: 3) { id, value } } }"
 
-            val result = deserialize(schema.execute(query))
+            val result = deserialize(schema.executeBlocking(query))
             counters.treeChild.prepare.get() shouldEqual 2
             counters.treeChild.loader.get() shouldEqual 1
 
@@ -152,7 +154,7 @@ class DataLoaderTest {
                 }
             """.trimIndent()
 
-            val result = schema.execute(query).deserialize()
+            val result = schema.executeBlocking(query).deserialize()
 
             counters.treeChild.prepare.get() shouldEqual 4
 
@@ -189,7 +191,7 @@ class DataLoaderTest {
             }
             """.trimIndent()
 
-            val result = schema.execute(query)
+            val result = schema.executeBlocking(query)
 
             println(result)
 //            throw TODO("Assert results")

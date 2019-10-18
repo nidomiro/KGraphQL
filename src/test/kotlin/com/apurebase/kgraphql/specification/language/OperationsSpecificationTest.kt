@@ -33,7 +33,6 @@ class OperationsSpecificationTest {
     fun `unnamed and named mutations are equivalent`(){
         executeEqualQueries(schema,
                 mapOf("data" to mapOf("createActor" to mapOf("name" to "Kurt Russel"))),
-                "{createActor(name : \"Kurt Russel\"){name}}",
                 "mutation {createActor(name : \"Kurt Russel\"){name}}",
                 "mutation KURT {createActor(name : \"Kurt Russel\"){name}}"
         )

@@ -12,6 +12,7 @@ import com.apurebase.kgraphql.request.VariablesJson
 import com.apurebase.kgraphql.schema.DefaultSchema
 import com.apurebase.kgraphql.schema.directive.Directive
 import com.apurebase.kgraphql.schema.introspection.TypeKind
+import com.apurebase.kgraphql.schema.jol.ast.ArgumentNodes
 import com.apurebase.kgraphql.schema.model.FunctionWrapper
 import com.apurebase.kgraphql.schema.model.TypeDef
 import com.apurebase.kgraphql.schema.scalar.serializeScalar
@@ -86,7 +87,9 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
                 val (item, result) = channel.receive()
                 resultMap[item] = result
             } catch (e: Exception) {
-                jobs.forEach(Job::cancel)
+                jobs.forEach {
+                    it.cancel()
+                }
                 throw e
             }
         }
@@ -129,9 +132,9 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         return createNode(ctx, operationResult, node, returnType ?: unionProperty.returnType)
     }
 
-    private suspend fun <T> createNode(ctx: ExecutionContext, value: T?, node: Execution.Node, returnType: Type, test: Boolean = true): JsonNode {
+    private suspend fun <T> createNode(ctx: ExecutionContext, value: T?, node: Execution.Node, returnType: Type): JsonNode {
         return when {
-            node is Execution.DataLoad && test -> createNodeWithDataLoaders(ctx, value, node, returnType)
+//            node is Execution.DataLoad && test -> createNodeWithDataLoaders(ctx, value, node, returnType)
             value == null -> createNullNode(node, returnType)
 
             //check value, not returnType, because this method can be invoked with element value
@@ -162,65 +165,65 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
             else -> createSimpleValueNode(returnType, value)
         }
     }
-
-    data class DataValue<P, V>(
-        val parentValue: P,
-        val value: V,
-        val execution: Execution.DataLoad
-    )
-
-    private suspend fun <T> createNodeWithDataLoaders(ctx: ExecutionContext, value: T?, node: Execution.DataLoad, returnType: Type): JsonNode {
-        if (returnType.isNotList()) // TODO: This should be supported when having an node across another collection
-            throw TODO("ReturnType Should be collection")
-        if (value !is Collection<*>)
-            throw TODO("Should be a collection")
-        val map = value.toMapAsync { v ->
-            node.children.map {
-                when (it) {
-                    is Execution.Node -> {
-                        if (it.field is Field.DataLoader<*, *, *>) {
-
-                            val dataValue = DataValue(value, v, node)
-
-                            var count = value.size
-
-//                            if (it.children.isNotEmpty()) count *= it.children.size
-//                            if (node.childFields.isNotEmpty() && it.children.isNotEmpty()) count *= node.childFields.size
-
-//                            val count = when {
-//                                returnType !is Type.AList && it.children.isNotEmpty() -> value.size
-//                                returnType is Type.AList && it.children.isNotEmpty() -> it.children.size * value.size
-//                                node.children.isNotEmpty() -> value.size
-//                                else -> -1
-//                            }
-
-                             node
-                                .childFields
-                                .getValue(it.field)
-                                .setTotalCount(dataValue, count)
-
-                            handleProperty(
-                                ctx= ctx,
-                                value = dataValue,
-                                child = it,
-                                type = it.field.returnType
-                            )
-                        } else {
-                            it.aliasOrKey to createPropertyNode(ctx, v, it, it.field)
-                        }
-                    }
-                    else -> throw Exception("Failing, not found")
-                }
-            }
-        }
-        return value.fold(jsonNodeFactory.arrayNode()) { ar, v ->
-            val objectNode = jsonNodeFactory.objectNode()
-            map.getValue(v).forEach { (str, n) ->
-                objectNode.set(str, n)
-            }
-            ar.add(objectNode)
-        }
-    }
+//
+//    data class DataValue<P, V>(
+//        val parentValue: P,
+//        val value: V,
+//        val execution: Execution.DataLoad
+//    )
+//
+//    private suspend fun <T> createNodeWithDataLoaders(ctx: ExecutionContext, value: T?, node: Execution.DataLoad, returnType: Type): JsonNode {
+//        if (returnType.isNotList()) // TODO: This should be supported when having an node across another collection
+//            throw TODO("ReturnType Should be collection")
+//        if (value !is Collection<*>)
+//            throw TODO("Should be a collection")
+//        val map = value.toMapAsync { v ->
+//            node.children.map {
+//                when (it) {
+//                    is Execution.Node -> {
+//                        if (it.field is Field.DataLoader<*, *, *>) {
+//
+//                            val dataValue = DataValue(value, v, node)
+//
+//                            var count = value.size
+//
+////                            if (it.children.isNotEmpty()) count *= it.children.size
+////                            if (node.childFields.isNotEmpty() && it.children.isNotEmpty()) count *= node.childFields.size
+//
+////                            val count = when {
+////                                returnType !is Type.AList && it.children.isNotEmpty() -> value.size
+////                                returnType is Type.AList && it.children.isNotEmpty() -> it.children.size * value.size
+////                                node.children.isNotEmpty() -> value.size
+////                                else -> -1
+////                            }
+//
+//                             node
+//                                .childFields
+//                                .getValue(it.field)
+//                                .setTotalCount(dataValue, count)
+//
+//                            handleProperty(
+//                                ctx= ctx,
+//                                value = dataValue,
+//                                child = it,
+//                                type = it.field.returnType
+//                            )
+//                        } else {
+//                            it.aliasOrKey to createPropertyNode(ctx, v, it, it.field)
+//                        }
+//                    }
+//                    else -> throw Exception("Failing, not found")
+//                }
+//            }
+//        }
+//        return value.fold(jsonNodeFactory.arrayNode()) { ar, v ->
+//            val objectNode = jsonNodeFactory.objectNode()
+//            map.getValue(v).forEach { (str, n) ->
+//                objectNode.set(str, n)
+//            }
+//            ar.add(objectNode)
+//        }
+//    }
 
     private fun <T> createSimpleValueNode(returnType: Type, value: T): JsonNode {
         val unwrapped = returnType.unwrapped()
@@ -270,16 +273,16 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
                 }
             }
             is Execution.Node -> {
-                return if (value is DataValue<*, *>) {
-                    val test = value.execution.childFields[child.field]!!
-                    val load = test.load(this, ctx, child.field.arguments, value)
-                    val node = createNode(ctx, load, child, child.field.returnType)
-                    child.aliasOrKey to node
-                } else {
-                    val field = type.unwrapped()[child.key]
-                        ?: throw IllegalStateException("Execution unit ${child.key} is not contained by operation return type")
-                    return child.aliasOrKey to createPropertyNode(ctx, value, child, field)
-                }
+//                return if (value is DataValue<*, *>) {
+//                    val test = value.execution.childFields[child.field]!!
+//                    val load = test.load(this, ctx, child.field.arguments, value)
+//                    val node = createNode(ctx, load, child, child.field.returnType)
+//                    child.aliasOrKey to node
+//                } else {
+                val field = type.unwrapped()[child.key]
+                    ?: throw IllegalStateException("Execution unit ${child.key} is not contained by operation return type")
+                return child.aliasOrKey to createPropertyNode(ctx, value, child, field)
+//                }
             }
             else -> {
                 throw UnsupportedOperationException("Handling containers is not implemented yet")
@@ -316,11 +319,10 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         if (include) {
             when (field) {
                 is Field.Kotlin<*, *> -> {
-                    field.kProperty as KProperty1<T, *>
-                    val rawValue = field.kProperty.get(parentValue)
+                    val rawValue = (field.kProperty as KProperty1<T, *>).get(parentValue)
                     val value: Any?
                     value = if (field.transformation != null) {
-                        field.transformation.invoke(
+                        field.transformation!!.invoke(
                                 funName = field.name,
                                 receiver = rawValue,
                                 inputValues = field.arguments,
@@ -335,14 +337,14 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
                 is Field.Function<*, *> -> {
                     return handleFunctionProperty(ctx, parentValue, node, field)
                 }
-                is Field.DataLoader<*, *, *> -> {
-                    if (parentValue is DataValue<*, *>) {
-                        return handleDataProperty(ctx, parentValue, node, field)
-                    } else {
-                        // throw TODO("What now?")
-                        return handleDataProperty(ctx, parentValue as DataValue<*, *>, node, field)
-                    }
-                }
+//                is Field.DataLoader<*, *, *> -> {
+//                    if (parentValue is DataValue<*, *>) {
+//                        return handleDataProperty(ctx, parentValue, node, field)
+//                    } else {
+//                        // throw TODO("What now?")
+//                        return handleDataProperty(ctx, parentValue as DataValue<*, *>, node, field)
+//                    }
+//                }
                 else -> {
                     throw Exception("Unexpected field type: $field, should be Field.Kotlin or Field.Function")
                 }
@@ -363,22 +365,23 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         return createNode(ctx, result, node, field.returnType)
     }
 
-    suspend fun <T> handleDataProperty(ctx: ExecutionContext, value: DataValue<T, *>, node: Execution.Node, field: Field.DataLoader<*, *, *>): JsonNode {
-        val dlt = value.execution.childFields[field]
-            ?: TODO("Fix this!?")
-        // TODO: Maybe missing support for fragments?
-        val result = dlt.load(this, ctx, field.arguments, value)
-        return createNode(ctx, result, node, field.returnType)
-    }
+//    suspend fun <T> handleDataProperty(ctx: ExecutionContext, value: DataValue<T, *>, node: Execution.Node, field: Field.DataLoader<*, *, *>): JsonNode {
+//        val dlt = value.execution.childFields[field]
+//            ?: TODO("Fix this!?")
+//        // TODO: Maybe missing support for fragments?
+//        val result = dlt.load(this, ctx, field.arguments, value)
+//        return createNode(ctx, result, node, field.returnType)
+//    }
 
-    private suspend fun determineInclude(ctx: ExecutionContext, directives: Map<Directive, Arguments?>?): Boolean {
+    private suspend fun determineInclude(ctx: ExecutionContext, directives: Map<Directive, ArgumentNodes?>?): Boolean {
+        if (directives?.isEmpty() == true) return true
         return directives?.map { (directive, arguments) ->
             directive.execution.invoke(
-                    funName = directive.name,
-                    inputValues = directive.arguments,
-                    receiver = null,
-                    args = arguments,
-                    ctx = ctx
+                funName = directive.name,
+                inputValues = directive.arguments,
+                receiver = null,
+                args = arguments,
+                ctx = ctx
             )?.include
                     ?: throw ExecutionException("Illegal directive implementation returning null result")
         }?.reduce { acc, b -> acc && b } ?: true
@@ -388,7 +391,7 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
             funName: String,
             receiver: Any?,
             inputValues: List<InputValue<*>>,
-            args: Arguments?,
+            args: ArgumentNodes?,
             ctx: ExecutionContext
     ): T? {
         val transformedArgs = argumentsHandler.transformArguments(funName, inputValues, args, ctx.variables, ctx.requestContext)

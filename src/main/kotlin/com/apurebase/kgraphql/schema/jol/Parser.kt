@@ -86,7 +86,7 @@ class Parser {
                 name = null,
                 variableDefinitions = listOf(),
                 directives = listOf(),
-                selectionSet = parseSelectionSet(),
+                selectionSet = parseSelectionSet(null),
                 loc = loc(start)
             )
         }
@@ -100,7 +100,7 @@ class Parser {
             name = name,
             variableDefinitions = parseVariableDefinitions(),
             directives = parseDirectives(false),
-            selectionSet = parseSelectionSet(),
+            selectionSet = parseSelectionSet(null),
             loc = loc(start)
         )
     }
@@ -157,12 +157,12 @@ class Parser {
     /**
      * SelectionSet : { Selection+ }
      */
-    private fun parseSelectionSet(): SelectionSetNode {
+    private fun parseSelectionSet(parent: SelectionNode?): SelectionSetNode {
         val start = lexer.token
         return SelectionSetNode(
             selections = many(
                 BRACE_L,
-                ::parseSelection,
+                { parseSelection(parent) },
                 BRACE_R
             ),
             loc = loc(start)
@@ -175,8 +175,8 @@ class Parser {
      *   - FragmentSpread
      *   - InlineFragment
      */
-    private fun parseSelection(): SelectionNode {
-        return if (peek(SPREAD)) parseFragment() else parseField()
+    private fun parseSelection(parent: SelectionNode?): SelectionNode {
+        return if (peek(SPREAD)) parseFragment(parent) else parseField(parent)
     }
 
     /**
@@ -184,7 +184,7 @@ class Parser {
      *
      * Alias : Name :
      */
-    private fun parseField(): SelectionNode.FieldNode {
+    private fun parseField(parent: SelectionNode?): SelectionNode.FieldNode {
         val start = lexer.token
 
         val nameOrAlias = parseName()
@@ -199,12 +199,15 @@ class Parser {
             name = nameOrAlias
         }
 
-        return SelectionNode.FieldNode(
+        val newNode = SelectionNode.FieldNode(
+            parent = parent,
             alias = alias,
             name = name,
             arguments = parseArguments(false),
-            directives = parseDirectives(false),
-            selectionSet = if (peek(BRACE_L)) parseSelectionSet() else null,
+            directives = parseDirectives(false)
+        )
+        return newNode.finalize(
+            selectionSet = if (peek(BRACE_L)) parseSelectionSet(newNode) else null,
             loc = loc(start)
         )
     }
@@ -249,22 +252,27 @@ class Parser {
      *
      * InlineFragment : ... TypeCondition? Directives? SelectionSet
      */
-    private fun parseFragment(): SelectionNode.FragmentNode {
+    private fun parseFragment(parent: SelectionNode?): SelectionNode.FragmentNode {
         val start = lexer.token
         this.expectToken(SPREAD)
 
         val hasTypeCondition = expectOptionalKeyword("on")
         if (!hasTypeCondition && this.peek(NAME)) {
             return SelectionNode.FragmentNode.FragmentSpreadNode(
+                parent = parent,
                 name = parseFragmentName(),
                 directives = parseDirectives(false),
                 loc = loc(start)
             )
         }
-        return SelectionNode.FragmentNode.InlineFragmentNode(
+        val newNode = SelectionNode.FragmentNode.InlineFragmentNode(
+            parent = parent,
             typeCondition = if (hasTypeCondition) parseNamedType() else null,
-            directives = parseDirectives(false),
-            selectionSet = parseSelectionSet(),
+            directives = parseDirectives(false)
+        )
+
+        return newNode.finalize(
+            selectionSet = parseSelectionSet(newNode),
             loc = loc(start)
         )
     }
@@ -283,7 +291,7 @@ class Parser {
             name = parseFragmentName(),
             typeCondition = expectKeyword("on").let { parseNamedType() },
             directives = parseDirectives(false),
-            selectionSet = parseSelectionSet(),
+            selectionSet = parseSelectionSet(null),
             loc = loc(start)
         )
     }
@@ -324,14 +332,14 @@ class Parser {
             BRACE_L -> parseObject(isConst)
             INT -> {
                 lexer.advance()
-                ValueNode.IntValueNode(
+                ValueNode.NumberValueNode(
                     value = token.value!!,
                     loc = loc(token)
                 )
             }
             FLOAT -> {
                 lexer.advance()
-                ValueNode.FloatValueNode(
+                ValueNode.DoubleValueNode(
                     value = token.value!!,
                     loc = loc(token)
                 )
@@ -450,7 +458,7 @@ class Parser {
         if (expectOptionalToken(BRACKET_L) != null) {
             type = parseTypeReference()
             expectToken(BRACKET_R)
-            type = TypeNode.Type.ListTypeNode(
+            type = TypeNode.ListTypeNode(
                 type = type,
                 loc = loc(start)
             )
@@ -470,9 +478,9 @@ class Parser {
     /**
      * NamedType : Name
      */
-    private fun parseNamedType(): TypeNode.Type.NamedTypeNode {
+    private fun parseNamedType(): TypeNode.NamedTypeNode {
         val start = lexer.token
-        return TypeNode.Type.NamedTypeNode(
+        return TypeNode.NamedTypeNode(
             name = parseName(),
             loc = loc(start)
         )
@@ -600,8 +608,8 @@ class Parser {
      *   - implements `&`? NamedType
      *   - ImplementsInterfaces & NamedType
      */
-    private fun parseImplementsInterfaces(): MutableList<TypeNode.Type.NamedTypeNode> {
-        val types = mutableListOf<TypeNode.Type.NamedTypeNode>()
+    private fun parseImplementsInterfaces(): MutableList<TypeNode.NamedTypeNode> {
+        val types = mutableListOf<TypeNode.NamedTypeNode>()
         if (this.expectOptionalKeyword("implements")) {
             // Optional leading ampersand
             expectOptionalToken(AMP)
@@ -739,8 +747,8 @@ class Parser {
      *   - = `|`? NamedType
      *   - UnionMemberTypes | NamedType
      */
-    private fun parseUnionMemberTypes(): MutableList<TypeNode.Type.NamedTypeNode> {
-        val types = mutableListOf<TypeNode.Type.NamedTypeNode>()
+    private fun parseUnionMemberTypes(): MutableList<TypeNode.NamedTypeNode> {
+        val types = mutableListOf<TypeNode.NamedTypeNode>()
         if (expectOptionalToken(EQUALS) != null) {
             // Optional leading pipe
             expectOptionalToken(PIPE)

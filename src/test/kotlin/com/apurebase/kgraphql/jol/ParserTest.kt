@@ -9,8 +9,8 @@ import com.apurebase.kgraphql.schema.jol.ast.SelectionNode.FieldNode
 import com.apurebase.kgraphql.schema.jol.ast.TokenKindEnum.EOF
 import com.apurebase.kgraphql.schema.jol.ast.TokenKindEnum.SOF
 import com.apurebase.kgraphql.schema.jol.ast.TypeNode.NonNullTypeNode
-import com.apurebase.kgraphql.schema.jol.ast.TypeNode.Type.ListTypeNode
-import com.apurebase.kgraphql.schema.jol.ast.TypeNode.Type.NamedTypeNode
+import com.apurebase.kgraphql.schema.jol.ast.TypeNode.ListTypeNode
+import com.apurebase.kgraphql.schema.jol.ast.TypeNode.NamedTypeNode
 import com.apurebase.kgraphql.schema.jol.ast.ValueNode.*
 import com.apurebase.kgraphql.schema.jol.error.GraphQLError
 import org.amshove.kluent.*
@@ -295,8 +295,8 @@ class ParserTest {
                                 start shouldEqual 9
                                 end shouldEqual 11
                             }
-                            (value as IntValueNode).run {
-                                this shouldBeInstanceOf IntValueNode::class
+                            (value as NumberValueNode).run {
+                                this shouldBeInstanceOf NumberValueNode::class
                                 loc!!.run {
                                     start shouldEqual 13
                                     end shouldEqual 14
@@ -488,8 +488,8 @@ class ParserTest {
                 end shouldEqual 11
             }
             values.size shouldEqual 2
-            (values[0] as IntValueNode).run {
-                this shouldBeInstanceOf IntValueNode::class
+            (values[0] as NumberValueNode).run {
+                this shouldBeInstanceOf NumberValueNode::class
                 loc!!.run {
                     start shouldEqual 1
                     end shouldEqual 4

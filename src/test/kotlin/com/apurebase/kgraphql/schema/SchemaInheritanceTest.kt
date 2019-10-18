@@ -32,12 +32,12 @@ class SchemaInheritanceTest {
             query("c") { resolver { -> C(name, age) } }
         }
 
-        expect<RequestException>("property id on B does not exist") {
-            deserialize(schema.execute("{b{id, name, age}}"))
+        expect<RequestException>("Property id on B does not exist") {
+            deserialize(schema.executeBlocking("{b{id, name, age}}"))
         }
 
-        expect<RequestException>("property id on C does not exist") {
-            deserialize(schema.execute("{c{id, name, age}}"))
+        expect<RequestException>("Property id on C does not exist") {
+            deserialize(schema.executeBlocking("{c{id, name, age}}"))
         }
     }
 

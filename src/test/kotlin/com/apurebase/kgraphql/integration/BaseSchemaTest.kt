@@ -280,5 +280,5 @@ abstract class BaseSchemaTest {
     @AfterEach
     fun cleanup() = createdActors.clear()
 
-    fun execute(query: String, variables : String? = null) = deserialize(testedSchema.execute(query, variables))
+    fun execute(query: String, variables : String? = null) = deserialize(testedSchema.executeBlocking(query, variables))
 }

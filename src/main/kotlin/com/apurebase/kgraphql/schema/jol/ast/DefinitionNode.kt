@@ -1,10 +1,10 @@
 package com.apurebase.kgraphql.schema.jol.ast
 
-import com.apurebase.kgraphql.schema.jol.ast.TypeNode.Type.NamedTypeNode
+import com.apurebase.kgraphql.schema.jol.ast.TypeNode.NamedTypeNode
 import com.apurebase.kgraphql.schema.jol.ast.ValueNode.*
 
 
-sealed class DefinitionNode(override val loc: Location?): ASTNode {
+sealed class DefinitionNode(override val loc: Location?): ASTNode() {
 
     sealed class ExecutableDefinitionNode(
         loc: Location?,
@@ -16,13 +16,10 @@ sealed class DefinitionNode(override val loc: Location?): ASTNode {
         class FragmentDefinitionNode(
             loc: Location?,
             name: NameNode,
-            // Note: fragment variable definitions are experimental and may be changed
-            // or removed in the future.
-            variableDefinitions: List<VariableDefinitionNode> = listOf(),
             directives: List<DirectiveNode> = listOf(),
             selectionSet: SelectionSetNode,
             val typeCondition: NamedTypeNode
-        ) : ExecutableDefinitionNode(loc, name, variableDefinitions, directives, selectionSet)
+        ) : ExecutableDefinitionNode(loc, name, emptyList(), directives, selectionSet)
 
         class OperationDefinitionNode(
             loc: Location?,
@@ -34,6 +31,9 @@ sealed class DefinitionNode(override val loc: Location?): ASTNode {
         ): ExecutableDefinitionNode(loc, name, variableDefinitions, directives, selectionSet)
     }
 
+    /**
+     * [TypeSystemDefinitionNode] is currently not used for anything
+     */
     sealed class TypeSystemDefinitionNode(loc: Location?): DefinitionNode(loc) {
         class SchemaDefinitionNode(
             val directives: List<DirectiveNode> = listOf(),

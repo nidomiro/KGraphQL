@@ -1,5 +1,5 @@
 package com.apurebase.kgraphql.schema.jol.ast
 
-interface ASTNode {
-    val loc: Location?
+abstract class ASTNode {
+    abstract val loc: Location?
 }

@@ -28,20 +28,20 @@ class QueryDocumentSpecificationTest {
     @Test
     fun `anonymous operation must be the only defined operation`(){
         expect<RequestException>("anonymous operation must be the only defined operation"){
-            deserialize(schema.execute("query {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
+            deserialize(schema.executeBlocking("query {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
         }
     }
 
     @Test
     fun `must provide operation name when multiple named operations`(){
         expect<RequestException>("Must provide an operation name from: [FIZZ, BUZZ]"){
-            deserialize(schema.execute("query FIZZ {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
+            deserialize(schema.executeBlocking("query FIZZ {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
         }
     }
 
     @Test
     fun `execute operation by name in variable`(){
-        val map = deserialize(schema.execute (
+        val map = deserialize(schema.executeBlocking (
                 "query FIZZ {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}",
                 "{\"operationName\":\"FIZZ\"}"
         ))

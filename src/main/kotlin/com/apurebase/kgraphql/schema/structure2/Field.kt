@@ -53,15 +53,16 @@ sealed class Field : __Field {
         }
     }
 
-    open class DataLoader<T, K, R>(
-        val kql : PropertyDef.DataLoadDef<T, K, R>,
-        override val returnType: Type,
-        override val arguments: List<InputValue<*>>
-    ) : Field() {
-        override val isDeprecated = kql.isDeprecated
-        override val deprecationReason = kql.deprecationReason
-        override val description = kql.description
-        override val name = kql.name
+/*
+//    open class DataLoader<T, K, R>(
+//        val kql : PropertyDef.DataLoadDef<T, K, R>,
+//        override val returnType: Type,
+//        override val arguments: List<InputValue<*>>
+//    ) : Field() {
+//        override val isDeprecated = kql.isDeprecated
+//        override val deprecationReason = kql.deprecationReason
+//        override val description = kql.description
+//        override val name = kql.name
 
         /*
         var total: Int = -1
@@ -107,16 +108,17 @@ sealed class Field : __Field {
                 result
             }
         } */
-        override fun checkAccess(parent: Any?, ctx: Context) {
-            kql.accessRule?.invoke(parent as T?, ctx)?.let { throw it }
-        }
-    }
+//        override fun checkAccess(parent: Any?, ctx: Context) {
+//            kql.accessRule?.invoke(parent as T?, ctx)?.let { throw it }
+//        }
+//    }
+*/
 
     class Kotlin<T : Any, R>(
-            kql : PropertyDef.Kotlin<T, R>,
-            override val returnType: Type,
-            override val arguments: List<InputValue<*>>,
-            val transformation : Transformation<T, R>?
+        kql : PropertyDef.Kotlin<T, R>,
+        override val returnType: Type,
+        override val arguments: List<InputValue<*>>,
+        val transformation : Transformation<T, R>?
     ) : Field(){
 
         val kProperty = kql.kProperty
