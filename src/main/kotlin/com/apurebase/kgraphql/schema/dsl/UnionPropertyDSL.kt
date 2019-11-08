@@ -5,14 +5,9 @@ import com.apurebase.kgraphql.schema.model.FunctionWrapper
 import com.apurebase.kgraphql.schema.model.InputValueDef
 import com.apurebase.kgraphql.schema.model.PropertyDef
 import com.apurebase.kgraphql.schema.model.TypeDef
-import java.lang.IllegalArgumentException
 
 
-class UnionPropertyDSL<T : Any>(val name : String, block: UnionPropertyDSL<T>.() -> Unit) : LimitedAccessItemDSL<T>(), ResolverDSL.Target {
-
-    init {
-        block()
-    }
+class UnionPropertyDSL<T : Any>(val name: String) : LimitedAccessItemDSL<T>(), ResolverDSL.Target {
 
     internal lateinit var functionWrapper : FunctionWrapper<Any?>
 

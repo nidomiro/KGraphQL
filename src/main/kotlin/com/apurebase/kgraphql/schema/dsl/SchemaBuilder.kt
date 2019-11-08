@@ -119,7 +119,7 @@ class SchemaBuilder {
     //================================================================================
 
     fun <T : Any> type(kClass: KClass<T>, block: TypeDSL<T>.() -> Unit) {
-        val type = TypeDSL(model.unionsMonitor, kClass, block)
+        val type = TypeDSL(model.unionsMonitor, kClass).apply(block)
         model.addObject(type.toKQLObject())
     }
 
@@ -136,7 +136,11 @@ class SchemaBuilder {
     //================================================================================
 
     fun <T : Enum<T>> enum(kClass: KClass<T>, enumValues: Array<T>, block: (EnumDSL<T>.() -> Unit)? = null) {
-        val type = EnumDSL(kClass, block)
+        val type = EnumDSL(kClass).apply {
+            if (block != null) {
+                block()
+            }
+        }
 
         val kqlEnumValues = enumValues.map { value ->
             type.valueDefinitions[value]?.let { valueDSL ->
@@ -166,7 +170,7 @@ class SchemaBuilder {
     //================================================================================
 
     fun unionType(name: String, block: UnionTypeDSL.() -> Unit): TypeID {
-        val union = UnionTypeDSL(block)
+        val union = UnionTypeDSL().apply(block)
         model.addUnion(TypeDef.Union(name, union.possibleTypes, union.description))
         return TypeID(name)
     }
@@ -176,7 +180,7 @@ class SchemaBuilder {
     //================================================================================
 
     fun <T : Any> inputType(kClass: KClass<T>, block: InputTypeDSL<T>.() -> Unit) {
-        val input = InputTypeDSL(kClass, block)
+        val input = InputTypeDSL(kClass).apply(block)
         model.addInputObject(TypeDef.Input(input.name, kClass, input.description))
     }
 

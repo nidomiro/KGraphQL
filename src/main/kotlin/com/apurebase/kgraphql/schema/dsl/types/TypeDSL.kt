@@ -15,9 +15,8 @@ import kotlin.reflect.KProperty1
 
 
 open class TypeDSL<T : Any>(
-        private val supportedUnions: Collection<TypeDef.Union>,
-        val kClass: KClass<T>,
-        block: TypeDSL<T>.() -> Unit
+    private val supportedUnions: Collection<TypeDef.Union>,
+    val kClass: KClass<T>
 ) : ItemDSL() {
 
     var name = kClass.defaultKQLTypeName()
@@ -82,15 +81,11 @@ open class TypeDSL<T : Any>(
     }
 
     fun unionProperty(name : String, block : UnionPropertyDSL<T>.() -> Unit){
-        val property = UnionPropertyDSL(name, block)
+        val property = UnionPropertyDSL<T>(name).apply(block)
         val union = supportedUnions.find { property.returnType.typeID.equals(it.name, true) }
                 ?: throw SchemaException("Union Type: ${property.returnType.typeID} does not exist")
 
         unionProperties.add(property.toKQLProperty(union))
-    }
-
-    init {
-        block()
     }
 
     internal fun toKQLObject() : TypeDef.Object<T> {

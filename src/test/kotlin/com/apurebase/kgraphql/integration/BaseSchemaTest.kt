@@ -160,7 +160,8 @@ abstract class BaseSchemaTest {
         }
         query("filmsByType") {
             description = "film categorized by type"
-            resolver {type: FilmType -> listOf(prestige, se7en) }
+            @Suppress("UNUSED_ANONYMOUS_PARAMETER")
+            resolver { type: FilmType -> listOf(prestige, se7en) }
         }
         query("people") {
             description = "List of all people"
