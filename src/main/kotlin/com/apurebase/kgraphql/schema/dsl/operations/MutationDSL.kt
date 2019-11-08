@@ -4,7 +4,7 @@ import com.apurebase.kgraphql.schema.model.MutationDef
 
 class MutationDSL(
     name: String
-) : AbstractOperationDSL(name) {
+) : AbstractSingleResultOperationsDSL(name) {
 
 
     internal fun toKQLMutation(): MutationDef<out Any?> {

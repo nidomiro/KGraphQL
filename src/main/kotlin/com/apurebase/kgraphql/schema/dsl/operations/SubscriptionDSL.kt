@@ -4,7 +4,7 @@ import com.apurebase.kgraphql.schema.model.SubscriptionDef
 
 class SubscriptionDSL(
     name: String
-) : AbstractOperationDSL(name) {
+) : AbstractResultStreamOperationsDSL(name) {
 
     internal fun toKQLSubscription(): SubscriptionDef<out Any?> {
         val function =

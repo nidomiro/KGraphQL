@@ -4,7 +4,7 @@ import com.apurebase.kgraphql.schema.model.QueryDef
 
 class QueryDSL(
     name: String
-) : AbstractOperationDSL(name) {
+) : AbstractSingleResultOperationsDSL(name) {
 
 
     internal fun toKQLQuery(): QueryDef<out Any?> {
