@@ -27,7 +27,7 @@ object BenchmarkSchema {
         }
     }
 
-    fun create(block : SchemaBuilder<Unit>.()-> Unit): Schema = KGraphQL.schema {
+    fun create(block: SchemaBuilder.() -> Unit): Schema = KGraphQL.schema {
         block()
         query("one"){
             resolver(oneResolver)

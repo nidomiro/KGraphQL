@@ -5,6 +5,7 @@ import com.apurebase.kgraphql.schema.SchemaException
 import com.apurebase.kgraphql.schema.dsl.operations.MutationDSL
 import com.apurebase.kgraphql.schema.dsl.operations.QueryDSL
 import com.apurebase.kgraphql.schema.dsl.operations.SubscriptionDSL
+import com.apurebase.kgraphql.schema.dsl.types.*
 import com.apurebase.kgraphql.schema.model.EnumValueDef
 import com.apurebase.kgraphql.schema.model.MutableSchemaDefinition
 import com.apurebase.kgraphql.schema.model.TypeDef
@@ -18,14 +19,13 @@ import kotlin.reflect.KClass
 /**
  * SchemaBuilder exposes rich DSL to setup GraphQL schema
  */
-class SchemaBuilder<Context : Any>(private val init: SchemaBuilder<Context>.() -> Unit) {
+class SchemaBuilder {
 
     private val model = MutableSchemaDefinition()
 
     private var configuration = SchemaConfigurationDSL()
 
     fun build(): Schema {
-        init()
         return SchemaCompilation(configuration.build(), model.toSchemaDefinition()).perform()
     }
 
@@ -65,7 +65,7 @@ class SchemaBuilder<Context : Any>(private val init: SchemaBuilder<Context>.() -
     //================================================================================
 
     fun <T : Any> stringScalar(kClass: KClass<T>, block: ScalarDSL<T, String>.() -> Unit) {
-        val scalar = StringScalarDSL(kClass, block)
+        val scalar = StringScalarDSL(kClass).apply(block)
         configuration.appendMapper(scalar, kClass)
         model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
     }
@@ -75,7 +75,7 @@ class SchemaBuilder<Context : Any>(private val init: SchemaBuilder<Context>.() -
     }
 
     fun <T : Any> intScalar(kClass: KClass<T>, block: ScalarDSL<T, Int>.() -> Unit) {
-        val scalar = IntScalarDSL(kClass, block)
+        val scalar = IntScalarDSL(kClass).apply(block)
         configuration.appendMapper(scalar, kClass)
         model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
     }
@@ -85,7 +85,7 @@ class SchemaBuilder<Context : Any>(private val init: SchemaBuilder<Context>.() -
     }
 
     fun <T : Any> floatScalar(kClass: KClass<T>, block: ScalarDSL<T, Double>.() -> Unit) {
-        val scalar = DoubleScalarDSL(kClass, block)
+        val scalar = DoubleScalarDSL(kClass).apply(block)
         configuration.appendMapper(scalar, kClass)
         model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
     }
@@ -95,7 +95,7 @@ class SchemaBuilder<Context : Any>(private val init: SchemaBuilder<Context>.() -
     }
 
     fun <T : Any> longScalar(kClass: KClass<T>, block: ScalarDSL<T, Long>.() -> Unit) {
-        val scalar = LongScalarDSL(kClass, block)
+        val scalar = LongScalarDSL(kClass).apply(block)
         configuration.appendMapper(scalar, kClass)
         model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
     }
@@ -105,7 +105,7 @@ class SchemaBuilder<Context : Any>(private val init: SchemaBuilder<Context>.() -
     }
 
     fun <T : Any> booleanScalar(kClass: KClass<T>, block: ScalarDSL<T, Boolean>.() -> Unit) {
-        val scalar = BooleanScalarDSL(kClass, block)
+        val scalar = BooleanScalarDSL(kClass).apply(block)
         configuration.appendMapper(scalar, kClass)
         model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
     }

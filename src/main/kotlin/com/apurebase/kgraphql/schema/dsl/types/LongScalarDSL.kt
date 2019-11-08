@@ -1,4 +1,4 @@
-package com.apurebase.kgraphql.schema.dsl
+package com.apurebase.kgraphql.schema.dsl.types
 
 import com.apurebase.kgraphql.schema.SchemaException
 import com.apurebase.kgraphql.schema.scalar.LongScalarCoercion
@@ -6,8 +6,7 @@ import com.apurebase.kgraphql.schema.scalar.ScalarCoercion
 import kotlin.reflect.KClass
 
 
-class LongScalarDSL<T : Any>(kClass: KClass<T>, block: ScalarDSL<T, Long>.() -> Unit)
-    : ScalarDSL<T, Long>(kClass, block){
+class LongScalarDSL<T : Any>(kClass: KClass<T>) : ScalarDSL<T, Long>(kClass) {
 
     override fun createCoercionFromFunctions(): ScalarCoercion<T, Long> {
         return object : LongScalarCoercion<T> {

@@ -1,12 +1,11 @@
 package com.apurebase.kgraphql
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.apurebase.kgraphql.schema.DefaultSchema
 import com.apurebase.kgraphql.schema.Schema
 import com.apurebase.kgraphql.schema.dsl.SchemaBuilder
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.hamcrest.CoreMatchers
 import org.hamcrest.FeatureMatcher
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.instanceOf
@@ -47,8 +46,8 @@ fun <T>extractOrNull(map: Map<*,*>, path : String) : T? {
     }
 }
 
-fun defaultSchema(block: SchemaBuilder<Unit>.() -> Unit): DefaultSchema {
-    return SchemaBuilder(block).build() as DefaultSchema
+fun defaultSchema(block: SchemaBuilder.() -> Unit): DefaultSchema {
+    return SchemaBuilder().apply(block).build() as DefaultSchema
 }
 
 fun assertNoErrors(map : Map<*,*>) {
@@ -58,7 +57,7 @@ fun assertNoErrors(map : Map<*,*>) {
 
 fun assertError(map : Map<*,*>, vararg messageElements : String) {
     val errorMessage = map.extract<String>("errors/message")
-    MatcherAssert.assertThat(errorMessage, CoreMatchers.notNullValue())
+    assertThat(errorMessage, CoreMatchers.notNullValue())
 
     messageElements
         .filterNot { errorMessage.contains(it) }
@@ -81,7 +80,7 @@ fun executeEqualQueries(schema: Schema, expected: Map<*,*>, vararg queries : Str
     queries.map { request ->
         deserialize(schema.execute(request))
     }.forEach { map ->
-        MatcherAssert.assertThat(map, CoreMatchers.equalTo(expected))
+        assertThat(map, CoreMatchers.equalTo(expected))
     }
 }
 
