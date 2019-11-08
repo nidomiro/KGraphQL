@@ -1,23 +1,19 @@
-package com.apurebase.kgraphql.schema.dsl
+package com.apurebase.kgraphql.schema.dsl.operations
 
 import com.apurebase.kgraphql.Context
+import com.apurebase.kgraphql.schema.dsl.LimitedAccessItemDSL
+import com.apurebase.kgraphql.schema.dsl.ResolverDSL
 import com.apurebase.kgraphql.schema.model.FunctionWrapper
 import com.apurebase.kgraphql.schema.model.InputValueDef
-import com.apurebase.kgraphql.schema.model.MutationDef
-import com.apurebase.kgraphql.schema.model.QueryDef
 import kotlin.reflect.KFunction
 
 
-class QueryOrMutationDSL(
-        val name : String,
-        block : QueryOrMutationDSL.() -> Unit
-) : LimitedAccessItemDSL<Nothing>(), ResolverDSL.Target {
+abstract class AbstractOperationDSL(
+    val name: String
+) : LimitedAccessItemDSL<Nothing>(),
+    ResolverDSL.Target {
 
-    private val inputValues = mutableListOf<InputValueDef<*>>()
-
-    init {
-        block()
-    }
+    protected val inputValues = mutableListOf<InputValueDef<*>>()
 
     internal var functionWrapper : FunctionWrapper<*>? = null
 
@@ -57,31 +53,5 @@ class QueryOrMutationDSL(
         this.inputValues.addAll(inputValues)
     }
 
-    internal fun toKQLQuery(): QueryDef<out Any?> {
-        val function = functionWrapper ?: throw IllegalArgumentException("resolver has to be specified for query [$name]")
 
-        return QueryDef (
-                name = name,
-                resolver = function,
-                description = description,
-                isDeprecated = isDeprecated,
-                deprecationReason = deprecationReason,
-                inputValues = inputValues,
-                accessRule = accessRuleBlock
-        )
-    }
-
-    internal fun toKQLMutation(): MutationDef<out Any?> {
-        val function = functionWrapper ?: throw IllegalArgumentException("resolver has to be specified for mutation [$name]")
-
-        return MutationDef(
-                name = name,
-                resolver = function,
-                description = description,
-                isDeprecated = isDeprecated,
-                deprecationReason = deprecationReason,
-                inputValues = inputValues,
-                accessRule = accessRuleBlock
-        )
-    }
 }

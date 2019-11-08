@@ -143,6 +143,7 @@ abstract class BaseSchemaTest {
         }
         query("actors") {
             description = "all actors"
+
             resolver { all: Boolean? ->
                 mutableListOf(bradPitt, morganFreeman, kevinSpacey, tomHardy, christianBale).also {
                     if (all == true) it.add(rickyGervais)
@@ -264,6 +265,7 @@ abstract class BaseSchemaTest {
 
         inputType<Actor> {
             name = "ActorInput"
+
         }
 
         mutation("createActorWithAliasedInputType") {

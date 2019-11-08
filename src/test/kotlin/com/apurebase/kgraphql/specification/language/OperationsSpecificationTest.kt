@@ -1,10 +1,8 @@
 package com.apurebase.kgraphql.specification.language
 
-import com.apurebase.kgraphql.*
-import com.apurebase.kgraphql.schema.SchemaException
-import com.apurebase.kgraphql.schema.dsl.subscribe
-import com.apurebase.kgraphql.schema.dsl.unsubscribe
-import org.junit.Assert
+import com.apurebase.kgraphql.Specification
+import com.apurebase.kgraphql.defaultSchema
+import com.apurebase.kgraphql.executeEqualQueries
 import org.junit.Test
 
 data class Actor(var name : String? = "", var age: Int? = 0)
@@ -13,7 +11,7 @@ data class Actress(var name : String? = "", var age: Int? = 0)
 @Specification("2.3 Operations")
 class OperationsSpecificationTest {
 
-    var subscriptionResult = ""
+    //var subscriptionResult = ""
 
     val schema = defaultSchema {
 
@@ -21,11 +19,11 @@ class OperationsSpecificationTest {
             resolver{ -> "buzz"}.withArgs {  }
         }
 
-        val publisher = mutation("createActor") {
+        mutation("createActor") {
             resolver { name : String -> Actor(name, 11) }
         }
 
-        subscription("subscriptionActor") {
+        /*subscription("subscriptionActor") {
             resolver { subscription: String ->
                 subscribe(subscription, publisher, Actor()) {
                     subscriptionResult = it
@@ -46,7 +44,7 @@ class OperationsSpecificationTest {
                     subscriptionResult = it
                 }
             }
-        }
+        }*/
     }
 
     @Test
@@ -69,9 +67,9 @@ class OperationsSpecificationTest {
         )
     }
 
-    @Test
+    /*@Test
     fun `handle subscription`(){
-        schema.execute("subscription {subscriptionActor(subscription : \"mySubscription\"){name}}")
+        val subResult = schema.execute("subscription {subscriptionActor(subscription : \"mySubscription\"){name}}")
 
         subscriptionResult = ""
         schema.execute("{createActor(name : \"Kurt Russel\"){name}}")
@@ -99,4 +97,6 @@ class OperationsSpecificationTest {
             schema.execute("subscription {subscriptionActress(subscription : \"mySubscription\"){age}}")
         }
     }
+
+     */
 }
