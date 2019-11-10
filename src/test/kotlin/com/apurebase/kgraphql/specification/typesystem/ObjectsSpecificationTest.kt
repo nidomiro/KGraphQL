@@ -44,7 +44,7 @@ class ObjectsSpecificationTest {
             }
         }
 
-        val result = schema.executeBlocking("{many{id, id2, value, active, smooth, name}}")
+        val result = schema.executeBlockingGetOne("{many{id, id2, value, active, smooth, name}}")
         with(result){
             assertThat(indexOf("\"name\""), greaterThan(indexOf("\"smooth\"")))
             assertThat(indexOf("\"smooth\""), greaterThan(indexOf("\"active\"")))
@@ -53,7 +53,7 @@ class ObjectsSpecificationTest {
             assertThat(indexOf("\"id2\""), greaterThan(indexOf("\"id\"")))
         }
 
-        val result2 = schema.executeBlocking("{many{name, active, id2, value, smooth, id}}")
+        val result2 = schema.executeBlockingGetOne("{many{name, active, id2, value, smooth, id}}")
         with(result2){
             assertThat(indexOf("\"id\""), greaterThan(indexOf("\"smooth\"")))
             assertThat(indexOf("\"smooth\""), greaterThan(indexOf("\"value\"")))
@@ -69,7 +69,8 @@ class ObjectsSpecificationTest {
             query("many") { resolver { -> ManyFields() } }
         }
 
-        val result = schema.executeBlocking("{many{active, ...Fields , smooth, id}} fragment Fields on ManyFields { id2, value }")
+        val result =
+            schema.executeBlockingGetOne("{many{active, ...Fields , smooth, id}} fragment Fields on ManyFields { id2, value }")
         with(result){
             assertThat(indexOf("\"id\""), greaterThan(indexOf("\"smooth\"")))
             assertThat(indexOf("\"smooth\""), greaterThan(indexOf("\"value\"")))
@@ -85,7 +86,8 @@ class ObjectsSpecificationTest {
             type<FewFields>()
         }
 
-        val result = schema.executeBlocking("{many{active, ...Fields, ...Few , smooth, id}} " +
+        val result = schema.executeBlockingGetOne(
+            "{many{active, ...Fields, ...Few , smooth, id}} " +
                 "fragment Fields on ManyFields { id2, value }" +
                 "fragment Few on FewFields { name } "
         )
@@ -103,7 +105,7 @@ class ObjectsSpecificationTest {
             query("many") { resolver { -> ManyFields() } }
         }
 
-        val result = schema.executeBlocking("{many{id, id2, value, id, active, smooth}}")
+        val result = schema.executeBlockingGetOne("{many{id, id2, value, id, active, smooth}}")
         with(result){
             //ensure that "id" appears only once
             assertThat(indexOf("\"id\""), equalTo(lastIndexOf("\"id\"")))
@@ -114,7 +116,8 @@ class ObjectsSpecificationTest {
             assertThat(indexOf("\"id2\""), greaterThan(indexOf("\"id\"")))
         }
 
-        val resultFragment = schema.executeBlocking("{many{id, id2, ...Many, active, smooth}} fragment Many on ManyFields{value, id}")
+        val resultFragment =
+            schema.executeBlockingGetOne("{many{id, id2, ...Many, active, smooth}} fragment Many on ManyFields{value, id}")
         with(resultFragment){
             //ensure that "id" appears only once
             assertThat(indexOf("\"id\""), equalTo(lastIndexOf("\"id\"")))
@@ -167,12 +170,12 @@ class ObjectsSpecificationTest {
             }
         }
 
-        val responseShortAfterLong = (schema.executeBlocking("{actor{long, short}}"))
+        val responseShortAfterLong = (schema.executeBlockingGetOne("{actor{long, short}}"))
         with(responseShortAfterLong) {
             assertThat(indexOf("short"), greaterThan(indexOf("long")))
         }
 
-        val responseLongAfterShort = (schema.executeBlocking("{actor{short, long}}"))
+        val responseLongAfterShort = (schema.executeBlockingGetOne("{actor{short, long}}"))
         with(responseLongAfterShort) {
             assertThat(indexOf("long"), greaterThan(indexOf("short")))
         }
@@ -195,7 +198,7 @@ class ObjectsSpecificationTest {
             }
         }
 
-        val responseShortAfterLong = schema.executeBlocking("{long, short}")
+        val responseShortAfterLong = schema.executeBlockingGetOne("{long, short}")
         with(responseShortAfterLong) {
             assertThat(indexOf("short"), greaterThan(indexOf("long")))
         }

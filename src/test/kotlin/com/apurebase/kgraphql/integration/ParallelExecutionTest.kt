@@ -1,9 +1,9 @@
 package com.apurebase.kgraphql.integration
 
-import com.apurebase.kgraphql.KGraphQL
-import com.apurebase.kgraphql.extract
-import com.apurebase.kgraphql.deserialize
 import com.apurebase.kgraphql.GraphQLError
+import com.apurebase.kgraphql.KGraphQL
+import com.apurebase.kgraphql.deserialize
+import com.apurebase.kgraphql.extract
 import kotlinx.coroutines.delay
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
@@ -55,7 +55,7 @@ class ParallelExecutionTest {
     @Test
     fun `Suspendable property resolvers`() {
         val query = "{getAll{id,children{id}}}"
-        val map = deserialize(suspendPropertySchema.executeBlocking(query))
+        val map = deserialize(suspendPropertySchema.executeBlockingGetOne(query))
 
         MatcherAssert.assertThat(map.extract<Int>("data/getAll[0]/id"), CoreMatchers.equalTo(0))
         MatcherAssert.assertThat(map.extract<Int>("data/getAll[500]/id"), CoreMatchers.equalTo(500))
@@ -70,7 +70,7 @@ class ParallelExecutionTest {
 
     @Test
     fun `1000 synchronous resolvers sleeping with Thread sleep`(){
-        val map = deserialize(syncResolversSchema.executeBlocking(query))
+        val map = deserialize(syncResolversSchema.executeBlockingGetOne(query))
         MatcherAssert.assertThat(map.extract<String>("data/automated_0"), CoreMatchers.equalTo("0"))
         MatcherAssert.assertThat(map.extract<String>("data/automated_271"), CoreMatchers.equalTo("271"))
         MatcherAssert.assertThat(map.extract<String>("data/automated_314"), CoreMatchers.equalTo("314"))
@@ -82,7 +82,7 @@ class ParallelExecutionTest {
     fun `1000 suspending resolvers sleeping with suspending delay`(){
         try {
 
-        val map = deserialize(suspendResolverSchema.executeBlocking(query))
+            val map = deserialize(suspendResolverSchema.executeBlockingGetOne(query))
         MatcherAssert.assertThat(map.extract<String>("data/automated_0"), CoreMatchers.equalTo("0"))
         MatcherAssert.assertThat(map.extract<String>("data/automated_271"), CoreMatchers.equalTo("271"))
         MatcherAssert.assertThat(map.extract<String>("data/automated_314"), CoreMatchers.equalTo("314"))

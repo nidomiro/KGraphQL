@@ -26,20 +26,21 @@ class QueryDocumentSpecificationTest {
     @Test
     fun `anonymous operation must be the only defined operation`(){
         invoking {
-            deserialize(schema.executeBlocking("query {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
+            deserialize(schema.executeBlockingGetOne("query {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
         } shouldThrow GraphQLError::class withMessage "anonymous operation must be the only defined operation"
     }
 
     @Test
     fun `must provide operation name when multiple named operations`(){
         invoking {
-            deserialize(schema.executeBlocking("query FIZZ {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
+            deserialize(schema.executeBlockingGetOne("query FIZZ {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}"))
         } shouldThrow GraphQLError::class withMessage "Must provide an operation name from: [FIZZ, BUZZ]"
     }
 
     @Test
     fun `execute operation by name in variable`(){
-        val map = deserialize(schema.executeBlocking (
+        val map = deserialize(
+            schema.executeBlockingGetOne(
                 "query FIZZ {fizz} mutation BUZZ {createActor(name : \"Kurt Russel\"){name}}",
                 "{\"operationName\":\"FIZZ\"}"
         ))

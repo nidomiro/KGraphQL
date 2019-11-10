@@ -1,12 +1,10 @@
 package com.apurebase.kgraphql.specification.typesystem
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.apurebase.kgraphql.KGraphQL
 import com.apurebase.kgraphql.deserialize
 import com.apurebase.kgraphql.extract
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.nullValue
-import org.hamcrest.CoreMatchers.startsWith
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
@@ -34,7 +32,8 @@ class InputObjectsSpecificationTest {
             val two = InputTwo(InputOne(MockEnum.M1, "M1"), 3434, listOf("23", "34", "21", "434"))
         }
         val variables = objectMapper.writeValueAsString(two)
-        val response = deserialize(schema.executeBlocking("query(\$two: InputTwo!){test(input: \$two)}", variables))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query(\$two: InputTwo!){test(input: \$two)}", variables))
         assertThat(response.extract<String>("data/test"), startsWith("success"))
     }
 
@@ -51,7 +50,8 @@ class InputObjectsSpecificationTest {
             val cirNull = Circular(Circular(null))
             val cirSuccess = Circular(Circular(null, "SUCCESS"))
         }
-        val response = deserialize(schema.executeBlocking(
+        val response = deserialize(
+            schema.executeBlockingGetOne(
                 "query(\$cirNull: Circular!, \$cirSuccess: Circular!){" +
                         "null: circular(cir: \$cirNull)" +
                         "success: circular(cir: \$cirSuccess)}",

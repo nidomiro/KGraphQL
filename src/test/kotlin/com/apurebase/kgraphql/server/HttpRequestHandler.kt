@@ -1,18 +1,13 @@
 package com.apurebase.kgraphql.server
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.apurebase.kgraphql.schema.DefaultSchema
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
-import io.netty.handler.codec.http.DefaultFullHttpResponse
-import io.netty.handler.codec.http.FullHttpRequest
-import io.netty.handler.codec.http.HttpHeaderNames
-import io.netty.handler.codec.http.HttpHeaderValues
-import io.netty.handler.codec.http.HttpResponseStatus
-import io.netty.handler.codec.http.HttpVersion
+import io.netty.handler.codec.http.*
 import io.netty.util.AsciiString
 import java.nio.charset.Charset
 import java.util.logging.Level
@@ -40,7 +35,7 @@ class HttpRequestHandler(val schema : DefaultSchema) : SimpleChannelInboundHandl
         val query = objectMapper.readTree(content)["query"].textValue()
                 ?: throw IllegalArgumentException("Please specify only one query")
         try {
-            val response = schema.executeBlocking(query, null)
+            val response = schema.executeBlockingGetOne(query, null)
             writeResponse(ctx, response)
         } catch(e: Exception) {
             writeResponse(ctx, "{\"errors\" : { \"message\": \"Caught ${e.javaClass.canonicalName}: ${e.message?.replace("\"", "\\\"")}\"}}")

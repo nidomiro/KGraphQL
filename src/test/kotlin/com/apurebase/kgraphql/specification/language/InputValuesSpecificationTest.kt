@@ -36,7 +36,7 @@ class InputValuesSpecificationTest {
     @Specification("2.9.1 Int Value")
     fun `Int input value`(){
         val input = 4356
-        val response = deserialize(schema.executeBlocking("{Int(value : $input)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Int(value : $input)}"))
         assertThat(response.extract<Int>("data/Int"), equalTo(input))
     }
 
@@ -44,7 +44,7 @@ class InputValuesSpecificationTest {
     @Specification("2.9.2 Float Value")
     fun `Float input value`(){
         val input : Double = 4356.34
-        val response = deserialize(schema.executeBlocking("{Float(value : $input)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Float(value : $input)}"))
         assertThat(response.extract<Double>("data/Float"), equalTo(input))
     }
 
@@ -53,7 +53,7 @@ class InputValuesSpecificationTest {
     fun `Double input value`(){
         //GraphQL Float is Kotlin Double
         val input = 4356.34
-        val response = deserialize(schema.executeBlocking("{Double(value : $input)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Double(value : $input)}"))
         assertThat(response.extract<Double>("data/Double"), equalTo(input))
     }
 
@@ -61,7 +61,7 @@ class InputValuesSpecificationTest {
     @Specification("2.9.2 Float Value")
     fun `Double with exponential input value`(){
         val input = 4356.34e2
-        val response = deserialize(schema.executeBlocking("{Double(value : $input)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Double(value : $input)}"))
         assertThat(response.extract<Double>("data/Double"), equalTo(input))
     }
 
@@ -70,7 +70,7 @@ class InputValuesSpecificationTest {
     fun `String input value`(){
         val input = "\\\\Ala ma kota \\n\\\\kot ma Alę"
         val expected = "\\Ala ma kota \n\\kot ma Alę"
-        val response = deserialize(schema.executeBlocking("{String(value : \"$input\")}"))
+        val response = deserialize(schema.executeBlockingGetOne("{String(value : \"$input\")}"))
         assertThat(response.extract<String>("data/String"), equalTo(expected))
     }
 
@@ -78,7 +78,7 @@ class InputValuesSpecificationTest {
     @Specification("2.9.3 Boolean Value")
     fun `Boolean input value`(){
         val input = true
-        val response = deserialize(schema.executeBlocking("{Boolean(value : $input)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Boolean(value : $input)}"))
         assertThat(response.extract<Boolean>("data/Boolean"), equalTo(input))
     }
 
@@ -86,35 +86,37 @@ class InputValuesSpecificationTest {
     @Specification("2.9.3 Boolean Value")
     fun `Invalid Boolean input value`(){
         invoking {
-            deserialize(schema.executeBlocking("{Boolean(value : null)}"))
+            deserialize(schema.executeBlockingGetOne("{Boolean(value : null)}"))
         } shouldThrow GraphQLError::class withMessage "argument 'null' is not valid value of type Boolean"
     }
 
     @Test
     @Specification("2.9.5 Null Value")
     fun `Null input value`(){
-        val response = deserialize(schema.executeBlocking("{Null(value : null)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Null(value : null)}"))
         assertThat(response.extract<Nothing?>("data/Null"), equalTo(null))
     }
 
     @Test
     @Specification("2.9.6 Enum Value")
     fun `Enum input value`(){
-        val response = deserialize(schema.executeBlocking("{Enum(value : ENUM1)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{Enum(value : ENUM1)}"))
         assertThat(response.extract<String>("data/Enum"), equalTo(FakeEnum.ENUM1.toString()))
     }
 
     @Test
     @Specification("2.9.7 List Value")
     fun `List input value`(){
-        val response = deserialize(schema.executeBlocking("{List(value : [23, 3, 23])}"))
+        val response = deserialize(schema.executeBlockingGetOne("{List(value : [23, 3, 23])}"))
         assertThat(response.extract<List<Int>>("data/List"), equalTo(listOf(23, 3, 23)))
     }
 
     @Test
     @Specification("2.9.8 Object Value")
     fun `Literal object input value`(){
-        val response = deserialize(schema.executeBlocking("""
+        val response = deserialize(
+            schema.executeBlockingGetOne(
+                """
             {
                 Object(value: {number: 232, description: "little number"})
             }
@@ -128,7 +130,9 @@ class InputValuesSpecificationTest {
     @Test
     @Specification("2.9.8 Object Value")
     fun `Literal object input value with list field`(){
-        val response = deserialize(schema.executeBlocking("""
+        val response = deserialize(
+            schema.executeBlockingGetOne(
+                """
             {
                 ObjectList(
                     value: {
@@ -149,7 +153,8 @@ class InputValuesSpecificationTest {
     @Test
     @Specification("2.9.8 Object Value")
     fun `Object input value`(){
-        val response = deserialize(schema.executeBlocking(
+        val response = deserialize(
+            schema.executeBlockingGetOne(
                 "query(\$object: FakeData!){Object(value: \$object)}",
                 "{ \"object\" : {\"number\":232, \"description\":\"little number\"}}"
         ))
@@ -159,7 +164,8 @@ class InputValuesSpecificationTest {
     @Test
     @Specification("2.9.8 Object Value")
     fun `Object input value with list field`(){
-        val response = deserialize(schema.executeBlocking(
+        val response = deserialize(
+            schema.executeBlockingGetOne(
                 "query(\$object: FakeData!){ObjectList(value: \$object)}",
                 "{ \"object\" : {\"number\":232, \"description\":\"little number\", \"list\" : [\"number\",\"description\",\"little number\"]}}"
         ))
@@ -172,7 +178,8 @@ class InputValuesSpecificationTest {
     @Test
     @Specification("2.9.8 Object Value")
     fun `Input object value mixed with variables`() {
-        val response = schema.executeBlocking("""
+        val response = schema.executeBlockingGetOne(
+            """
             query ObjectVariablesMixed(${d}description: String!, ${d}number: Int! = 25) {
                 ObjectList(value: {
                     number: ${d}number,
@@ -192,7 +199,7 @@ class InputValuesSpecificationTest {
     @Specification("2.9.8 Object Value")
     fun `Unknown object input value type`(){
         invoking {
-            schema.executeBlocking("query(\$object: FakeDate){Object(value: \$object)}")
+            schema.executeBlockingGetOne("query(\$object: FakeDate){Object(value: \$object)}")
         } shouldThrow GraphQLError::class with {
             println(prettyPrint())
             message shouldEqual "Invalid variable \$object argument type FakeDate, expected FakeData!"

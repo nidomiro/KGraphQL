@@ -20,7 +20,7 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__schema{queryType{fields{name, description}}}}"))
+        val response = deserialize(schema.executeBlockingGetOne("{__schema{queryType{fields{name, description}}}}"))
         assertThat(response.extract("data/__schema/queryType/fields[0]/description"), equalTo(expected))
     }
 
@@ -34,7 +34,8 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__schema{mutationType{fields{name, description}}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__schema{mutationType{fields{name, description}}}}"))
         assertThat(response.extract("data/__schema/mutationType/fields[0]/description"), equalTo(expected))
     }
 
@@ -52,7 +53,7 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"Sample\"){description}}"))
+        val response = deserialize(schema.executeBlockingGetOne("{__type(name: \"Sample\"){description}}"))
         assertThat(response.extract("data/__type/description/"), equalTo(expected))
     }
 
@@ -69,7 +70,7 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"Sample\"){description}}"))
+        val response = deserialize(schema.executeBlockingGetOne("{__type(name: \"Sample\"){description}}"))
         assertThat(response.extract("data/__type/description/"), equalTo(expected))
     }
 
@@ -88,7 +89,7 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"Sample\"){fields{description}}}"))
+        val response = deserialize(schema.executeBlockingGetOne("{__type(name: \"Sample\"){fields{description}}}"))
         assertThat(response.extract("data/__type/fields[0]/description/"), equalTo(expected))
     }
 
@@ -108,7 +109,8 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"Sample\"){fields{name, description}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__type(name: \"Sample\"){fields{name, description}}}"))
         assertThat(response.extract("data/__type/fields[1]/name/"), equalTo("add"))
         assertThat(response.extract("data/__type/fields[1]/description/"), equalTo(expected))
     }
@@ -130,7 +132,8 @@ class DocumentationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"SampleEnum\"){enumValues{name, description}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__type(name: \"SampleEnum\"){enumValues{name, description}}}"))
         assertThat(response.extract("data/__type/enumValues[0]/name"), equalTo(SampleEnum.ONE.name))
         assertThat(response.extract("data/__type/enumValues[0]/description"), equalTo(expected))
     }

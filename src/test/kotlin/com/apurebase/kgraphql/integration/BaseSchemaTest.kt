@@ -2,7 +2,6 @@ package com.apurebase.kgraphql.integration
 
 import com.apurebase.kgraphql.*
 import org.junit.After
-import java.io.ByteArrayInputStream
 
 
 abstract class BaseSchemaTest {
@@ -284,5 +283,6 @@ abstract class BaseSchemaTest {
     @After
     fun cleanup() = createdActors.clear()
 
-    fun execute(query: String, variables : String? = null) = deserialize(testedSchema.executeBlocking(query, variables))
+    fun execute(query: String, variables: String? = null) =
+        deserialize(testedSchema.executeBlockingGetOne(query, variables))
 }

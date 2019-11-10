@@ -5,9 +5,9 @@ val schema = BenchmarkSchema.create {  }
 
 fun main(vararg args: String){
     while(true){
-        println(schema.executeBlocking("{one{name, quantity, active}}"))
-        println(schema.executeBlocking("{two(name : \"FELLA\"){range{start, endInclusive}}}"))
-        println(schema.executeBlocking("{three{id}}"))
+        println(schema.executeBlockingGetOne("{one{name, quantity, active}}"))
+        println(schema.executeBlockingGetOne("{two(name : \"FELLA\"){range{start, endInclusive}}}"))
+        println(schema.executeBlockingGetOne("{three{id}}"))
         Thread.sleep(10)
     }
 }

@@ -5,6 +5,7 @@ import com.apurebase.kgraphql.defaultSchema
 import com.apurebase.kgraphql.executeEqualQueries
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
@@ -71,12 +72,12 @@ class OperationsSpecificationTest {
         val count = 5
 
         runBlocking {
-            val singleResultList = schema.executeFlow("subscription {singleValueSubscription()}").toList()
+            val singleResultList = schema.execute("subscription {singleValueSubscription()}").toList()
             assertThat(singleResultList, Matchers.hasSize(1))
             assertThat(singleResultList[0], Matchers.containsString("Value 1"))
 
             val multipleResultList =
-                schema.executeFlow("subscription {multipleValueSubscriptionWithDelay(count: $count)}").toList()
+                schema.execute("subscription {multipleValueSubscriptionWithDelay(count: $count)}").toList()
             assertThat(multipleResultList, Matchers.hasSize(count))
 
 
@@ -89,7 +90,7 @@ class OperationsSpecificationTest {
     @Test
     fun `Subscription return type must be the same as the publisher's`(){
         expect<SchemaException>("Subscription return type must be the same as the publisher's"){
-            schema.executeBlocking("subscription {subscriptionActress(subscription : \"mySubscription\"){age}}")
+            schema.executeGetFirstBlocking("subscription {subscriptionActress(subscription : \"mySubscription\"){age}}")
         }
     }
 

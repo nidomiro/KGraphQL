@@ -10,5 +10,5 @@ fun main() {
     }
 
     //prints '{"data":{"hello":"Hello, Ted Mosby"}}'
-    println(schema.executeBlocking("{hello(name : \"Ted Mosby\")}"))
+    println(schema.executeBlockingGetOne("{hello(name : \"Ted Mosby\")}"))
 }

@@ -1,15 +1,12 @@
 package com.apurebase.kgraphql.specification.typesystem
 
+import com.apurebase.kgraphql.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.apurebase.kgraphql.KGraphQL
-import com.apurebase.kgraphql.Specification
-import com.apurebase.kgraphql.deserialize
-import com.apurebase.kgraphql.extract
-import com.apurebase.kgraphql.GraphQLError
-import org.amshove.kluent.*
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.notNullValue
-import org.hamcrest.CoreMatchers.nullValue
+import org.amshove.kluent.invoking
+import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldThrow
+import org.amshove.kluent.with
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
@@ -31,7 +28,8 @@ class ListsSpecificationTest{
             val list = listOf("GAGA", "DADA", "PADA")
         })
 
-        val response = deserialize(schema.executeBlocking("query(\$list: [String!]!){list(list: \$list)}", variables))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query(\$list: [String!]!){list(list: \$list)}", variables))
         assertThat(response.extract<String>("data/list[0]"), equalTo("GAGA"))
         assertThat(response.extract<String>("data/list[1]"), equalTo("DADA"))
         assertThat(response.extract<String>("data/list[2]"), equalTo("PADA"))
@@ -50,7 +48,8 @@ class ListsSpecificationTest{
             val list = listOf("GAGA", null, "DADA", "PADA")
         })
 
-        val response = deserialize(schema.executeBlocking("query(\$list: [String!]!){list(list: \$list)}", variables))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query(\$list: [String!]!){list(list: \$list)}", variables))
         assertThat(response.extract<String>("data/list[1]"), nullValue())
     }
 
@@ -68,7 +67,7 @@ class ListsSpecificationTest{
         })
 
         invoking {
-            schema.executeBlocking("query(\$list: [String!]!){list(list: \$list)}", variables)
+            schema.executeBlockingGetOne("query(\$list: [String!]!){list(list: \$list)}", variables)
         } shouldThrow GraphQLError::class with {
             println(prettyPrint())
             message shouldEqual "Invalid argument value [GAGA, null, DADA, PADA] from variable \$list, " +
@@ -90,7 +89,8 @@ class ListsSpecificationTest{
             val list = "GAGA"
         })
 
-        val response = deserialize(schema.executeBlocking("query(\$list: [String!]!){list(list: \$list)}", variables))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query(\$list: [String!]!){list(list: \$list)}", variables))
         assertThat(response.extract<String>("data/list[0]"), equalTo("GAGA"))
     }
 
@@ -108,7 +108,8 @@ class ListsSpecificationTest{
             val list = null
         })
 
-        val response = deserialize(schema.executeBlocking("query(\$list: [String!]!){list(list: \$list)}", variables))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query(\$list: [String!]!){list(list: \$list)}", variables))
         assertThat(response.extract<String>("data/list"), nullValue())
     }
 
@@ -125,7 +126,8 @@ class ListsSpecificationTest{
             val list = listOf("GAGA", "DADA", "PADA")
         })
 
-        val response = deserialize(schema.executeBlocking("query(\$list: [String!]!){list(list: \$list)}", variables))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query(\$list: [String!]!){list(list: \$list)}", variables))
         assertThat(response.extract<Any>("data/list"), notNullValue())
     }
 
@@ -140,7 +142,7 @@ class ListsSpecificationTest{
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{list}"))
+        val response = deserialize(schema.executeBlockingGetOne("{list}"))
         assertThat(response.extract<Iterable<String>>("data/list"), equalTo(getResult()))
     }
 }

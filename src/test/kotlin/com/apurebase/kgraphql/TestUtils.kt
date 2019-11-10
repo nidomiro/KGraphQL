@@ -4,12 +4,11 @@ import com.apurebase.kgraphql.schema.DefaultSchema
 import com.apurebase.kgraphql.schema.Schema
 import com.apurebase.kgraphql.schema.dsl.SchemaBuilder
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.amshove.kluent.shouldEqual
 import org.hamcrest.CoreMatchers
 import org.hamcrest.FeatureMatcher
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.amshove.kluent.shouldEqual
-import org.hamcrest.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.hamcrest.Matchers.instanceOf
 import java.io.File
 
@@ -83,7 +82,7 @@ inline fun <reified T: Exception> expect(message: String? = null, block: () -> U
 
 fun executeEqualQueries(schema: Schema, expected: Map<*,*>, vararg queries : String) {
     queries.map { request ->
-        schema.executeBlocking(request).deserialize()
+        schema.executeBlockingGetOne(request).deserialize()
     }.forEach { map ->
         map shouldEqual expected
     }

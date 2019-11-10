@@ -20,7 +20,8 @@ class DeprecationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__schema{queryType{fields(includeDeprecated: true){name, deprecationReason, isDeprecated}}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__schema{queryType{fields(includeDeprecated: true){name, deprecationReason, isDeprecated}}}}"))
         assertThat(response.extract("data/__schema/queryType/fields[0]/deprecationReason"), equalTo(expected))
         assertThat(response.extract("data/__schema/queryType/fields[0]/isDeprecated"), equalTo(true))
     }
@@ -35,7 +36,8 @@ class DeprecationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__schema{mutationType{fields(includeDeprecated: true){name, deprecationReason, isDeprecated}}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__schema{mutationType{fields(includeDeprecated: true){name, deprecationReason, isDeprecated}}}}"))
         assertThat(response.extract("data/__schema/mutationType/fields[0]/deprecationReason"), equalTo(expected))
         assertThat(response.extract("data/__schema/mutationType/fields[0]/isDeprecated"), equalTo(true))
     }
@@ -57,7 +59,8 @@ class DeprecationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"Sample\"){fields(includeDeprecated: true){isDeprecated, deprecationReason}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__type(name: \"Sample\"){fields(includeDeprecated: true){isDeprecated, deprecationReason}}}"))
         assertThat(response.extract("data/__type/fields[0]/deprecationReason/"), equalTo(expected))
         assertThat(response.extract("data/__type/fields[0]/isDeprecated/"), equalTo(true))
     }
@@ -80,7 +83,8 @@ class DeprecationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"Sample\"){fields(includeDeprecated: true){name, description, isDeprecated, deprecationReason}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__type(name: \"Sample\"){fields(includeDeprecated: true){name, description, isDeprecated, deprecationReason}}}"))
         assertThat(response.extract("data/__type/fields[1]/deprecationReason"), equalTo(expected))
         assertThat(response.extract("data/__type/fields[1]/description"), equalTo(expectedDescription))
         assertThat(response.extract("data/__type/fields[1]/isDeprecated"), equalTo(true))
@@ -103,7 +107,8 @@ class DeprecationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("{__type(name: \"SampleEnum\"){enumValues(includeDeprecated: true){name, isDeprecated, deprecationReason}}}"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("{__type(name: \"SampleEnum\"){enumValues(includeDeprecated: true){name, isDeprecated, deprecationReason}}}"))
         assertThat(response.extract("data/__type/enumValues[0]/name"), equalTo(SampleEnum.ONE.name))
         assertThat(response.extract("data/__type/enumValues[0]/deprecationReason"), equalTo(expected))
         assertThat(response.extract("data/__type/enumValues[0]/isDeprecated"), equalTo(true))
@@ -124,7 +129,8 @@ class DeprecationSpecificationTest {
             }
         }
 
-        val response = deserialize(schema.executeBlocking("query { __type(name: \"Documented\") {  name, kind, description } }"))
+        val response =
+            deserialize(schema.executeBlockingGetOne("query { __type(name: \"Documented\") {  name, kind, description } }"))
         assertThat(response.extract("data/__type/description"), equalTo(expected))
     }
 }

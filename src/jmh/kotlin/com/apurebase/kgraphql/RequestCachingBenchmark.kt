@@ -1,15 +1,7 @@
 package com.apurebase.kgraphql
 
 import com.apurebase.kgraphql.schema.Schema
-import org.openjdk.jmh.annotations.Benchmark
-import org.openjdk.jmh.annotations.Fork
-import org.openjdk.jmh.annotations.Measurement
-import org.openjdk.jmh.annotations.OutputTimeUnit
-import org.openjdk.jmh.annotations.Param
-import org.openjdk.jmh.annotations.Scope
-import org.openjdk.jmh.annotations.Setup
-import org.openjdk.jmh.annotations.State
-import org.openjdk.jmh.annotations.Warmup
+import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
 
 
@@ -36,6 +28,6 @@ open class RequestCachingBenchmark {
 
     @Benchmark
     fun benchmark() : String {
-        return schema.executeBlocking("{one{name, quantity, active}, two(name : \"FELLA\"){range{start, endInclusive}}, three{id}}")
+        return schema.executeBlockingGetOne("{one{name, quantity, active}, two(name : \"FELLA\"){range{start, endInclusive}}, three{id}}")
     }
 }

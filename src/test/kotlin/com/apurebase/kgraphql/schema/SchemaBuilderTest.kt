@@ -208,8 +208,8 @@ class SchemaBuilderTest {
         assertThat(property, notNullValue())
         assertThat(property.returnType.unwrapped().name, equalTo("Actor"))
 
-        deserialize(tested.executeBlocking("{mainActor{name}}"))
-        deserialize(tested.executeBlocking("{actorById(id: 1){name}}"))
+        deserialize(tested.executeBlockingGetOne("{mainActor{name}}"))
+        deserialize(tested.executeBlockingGetOne("{actorById(id: 1){name}}"))
     }
 
     @Test
@@ -228,7 +228,7 @@ class SchemaBuilderTest {
             }
         }
 
-        deserialize(schema.executeBlocking("{actor{favDishes(size: 2)}}"))
+        deserialize(schema.executeBlockingGetOne("{actor{favDishes(size: 2)}}"))
     }
 
     @Test
@@ -243,7 +243,8 @@ class SchemaBuilderTest {
             }
         }
 
-        val result = deserialize(schema.executeBlocking("query(\$type : TYPE = FULL_LENGTH){actor(type: \$type){name}}"))
+        val result =
+            deserialize(schema.executeBlockingGetOne("query(\$type : TYPE = FULL_LENGTH){actor(type: \$type){name}}"))
         assertThat(result.extract<String>("data/actor/name"), equalTo("Boguś Linda FULL_LENGTH"))
     }
 
@@ -271,7 +272,7 @@ class SchemaBuilderTest {
                     )
                 }
             }
-        }.executeBlocking("{actors { name } }").let(::println)
+        }.executeBlockingGetOne("{actors { name } }").let(::println)
     }
 
     class InputOne(val string:  String)
@@ -328,10 +329,11 @@ class SchemaBuilderTest {
         assertThat(intArg?.defaultValue, equalTo(expectedDefaultValue.toString()))
         assertThat(intArg?.description, equalTo(expectedDescription))
 
-        val response = deserialize(schema.executeBlocking("{data}"))
+        val response = deserialize(schema.executeBlockingGetOne("{data}"))
         assertThat(response.extract<Int>("data/data"), equalTo(33))
 
-        val introspection = deserialize(schema.executeBlocking("{__schema{queryType{fields{name, args{name, description, defaultValue}}}}}"))
+        val introspection =
+            deserialize(schema.executeBlockingGetOne("{__schema{queryType{fields{name, args{name, description, defaultValue}}}}}"))
         assertThat(introspection.extract<String>("data/__schema/queryType/fields[0]/args[0]/description"), equalTo(expectedDescription))
     }
 
@@ -374,7 +376,7 @@ class SchemaBuilderTest {
 
         val georgeName = "George"
         val response = deserialize(
-            schema.executeBlocking(
+            schema.executeBlockingGetOne(
                 request = "{name}",
                 context = context { +UserData(georgeName, "STUFF") })
         )
@@ -405,7 +407,7 @@ class SchemaBuilderTest {
             inject("ADA")
         }
         val response = deserialize(
-            schema.executeBlocking(
+            schema.executeBlockingGetOne(
                 request = "{actor{ nickname, name(addStuff: true) }}",
                 context = context
             )
@@ -437,7 +439,9 @@ class SchemaBuilderTest {
     class SixValues(val val1: Int = 1, val val2: String = "2", val val3: Int = 3, val val4: String = "4", val val5: Int = 5, val val6: String = "6")
 
     fun checkSixValuesSchema(schema: Schema) {
-        val response = deserialize (schema.executeBlocking("{" +
+        val response = deserialize(
+            schema.executeBlockingGetOne(
+                "{" +
             "queryWith1Param(val1: 2) { val1 }" +
             "queryWith2Params(val1: 2, val2: \"3\") { val1, val2 }" +
             "queryWith3Params(val1: 2, val2: \"3\", val3: 4) { val1, val2, val3 }" +
@@ -592,7 +596,7 @@ class SchemaBuilderTest {
         assertThat(schema.typeByKClass(InputOne::class), notNullValue())
         assertThat(schema.inputTypeByKClass(InputOne::class), notNullValue())
 
-        val introspection = deserialize(schema.executeBlocking("{__schema{types{name}}}"))
+        val introspection = deserialize(schema.executeBlockingGetOne("{__schema{types{name}}}"))
         val types = introspection.extract<List<Map<String,String>>>("data/__schema/types")
         val names = types.map {it["name"]}
         assertThat(names, hasItem("TypeAsInput"))

@@ -1,11 +1,7 @@
 package com.apurebase.kgraphql.specification.typesystem
 
-import com.apurebase.kgraphql.KGraphQL
-import com.apurebase.kgraphql.Specification
-import com.apurebase.kgraphql.deserialize
-import com.apurebase.kgraphql.extract
+import com.apurebase.kgraphql.*
 import com.apurebase.kgraphql.schema.model.ast.ValueNode
-import com.apurebase.kgraphql.GraphQLError
 import com.apurebase.kgraphql.schema.scalar.StringScalarCoercion
 import org.amshove.kluent.*
 import org.hamcrest.CoreMatchers.equalTo
@@ -40,10 +36,11 @@ class ScalarsSpecificationTest {
             }
         }
 
-        val queryResponse = deserialize(testedSchema.executeBlocking("{person{uuid}}"))
+        val queryResponse = deserialize(testedSchema.executeBlockingGetOne("{person{uuid}}"))
         assertThat(queryResponse.extract<String>("data/person/uuid"), equalTo(uuid.toString()))
 
-        val mutationResponse = deserialize(testedSchema.executeBlocking(
+        val mutationResponse = deserialize(
+            testedSchema.executeBlockingGetOne(
                 "mutation{createPerson(uuid: \"$uuid\", name: \"John\"){uuid name}}"
         ))
         assertThat(mutationResponse.extract<String>("data/createPerson/uuid"), equalTo(uuid.toString()))
@@ -59,7 +56,7 @@ class ScalarsSpecificationTest {
         }
 
         invoking {
-            schema.executeBlocking("mutation{Int(int: ${Integer.MAX_VALUE.toLong() + 2L})}")
+            schema.executeBlockingGetOne("mutation{Int(int: ${Integer.MAX_VALUE.toLong() + 2L})}")
         } shouldThrow GraphQLError::class with {
             message shouldEqual "Cannot coerce to type of Int as '${Integer.MAX_VALUE.toLong() + 2L}' is greater than (2^-31)-1"
         }
@@ -72,7 +69,7 @@ class ScalarsSpecificationTest {
                 resolver { float: Float -> float }
             }
         }
-        val map = deserialize(schema.executeBlocking("mutation{float(float: 1)}"))
+        val map = deserialize(schema.executeBlockingGetOne("mutation{float(float: 1)}"))
         assertThat(map.extract<Double>("data/float"), equalTo(1.0))
     }
 
@@ -91,7 +88,8 @@ class ScalarsSpecificationTest {
         }
 
         val randomUUID = UUID.randomUUID()
-        val map = deserialize(testedSchema.executeBlocking("query(\$id: ID = \"$randomUUID\"){personById(id: \$id){uuid, name}}"))
+        val map =
+            deserialize(testedSchema.executeBlockingGetOne("query(\$id: ID = \"$randomUUID\"){personById(id: \$id){uuid, name}}"))
         assertThat(map.extract<String>("data/personById/uuid"), equalTo(randomUUID.toString()))
     }
 
@@ -105,7 +103,7 @@ class ScalarsSpecificationTest {
         }
 
         invoking {
-            schema.executeBlocking("mutation{Int(int: \"223\")}")
+            schema.executeBlockingGetOne("mutation{Int(int: \"223\")}")
         } shouldThrow GraphQLError::class withMessage "Cannot coerce \"223\" to numeric constant"
     }
 
@@ -126,7 +124,7 @@ class ScalarsSpecificationTest {
         }
 
         val value = 3434
-        val response = deserialize(schema.executeBlocking("{number(number: $value)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{number(number: $value)}"))
         assertThat(response.extract<Int>("data/number"), equalTo(value))
     }
 
@@ -147,7 +145,7 @@ class ScalarsSpecificationTest {
         }
 
         val value = true
-        val response = deserialize(schema.executeBlocking("{boolean(boolean: $value)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{boolean(boolean: $value)}"))
         assertThat(response.extract<Boolean>("data/boolean"), equalTo(value))
     }
 
@@ -173,7 +171,7 @@ class ScalarsSpecificationTest {
         }
 
         val value = 232.33
-        val response = deserialize(schema.executeBlocking("{double(double: $value)}"))
+        val response = deserialize(schema.executeBlockingGetOne("{double(double: $value)}"))
         assertThat(response.extract<Double>("data/double"), equalTo(value))
     }
 
@@ -238,7 +236,7 @@ class ScalarsSpecificationTest {
         """.trimIndent()
 
         try {
-            val response = deserialize(schema.executeBlocking(req, values))
+            val response = deserialize(schema.executeBlockingGetOne(req, values))
             assertThat(response.extract<Boolean>("data/boo"), equalTo(booValue))
             assertThat(response.extract<Int>("data/lon"), equalTo(lonValue.toInt()))
             assertThat(response.extract<Double>("data/dob"), equalTo(dobValue))
@@ -279,7 +277,8 @@ class ScalarsSpecificationTest {
 
         val manufacturer = """Joe Bloggs"""
 
-        val response = deserialize(schema.executeBlocking(
+        val response = deserialize(
+            schema.executeBlockingGetOne(
                 "mutation Mutation(\$newPart : NewPart!){ addPart(newPart: \$newPart) {manufacturer} }",
                 """
                     { "newPart" : {

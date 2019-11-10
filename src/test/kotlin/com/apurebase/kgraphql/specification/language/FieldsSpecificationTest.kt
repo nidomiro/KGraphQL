@@ -1,10 +1,7 @@
 package com.apurebase.kgraphql.specification.language
 
+import com.apurebase.kgraphql.*
 import com.apurebase.kgraphql.Actor
-import com.apurebase.kgraphql.Specification
-import com.apurebase.kgraphql.defaultSchema
-import com.apurebase.kgraphql.deserialize
-import com.apurebase.kgraphql.extract
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
@@ -24,7 +21,7 @@ class FieldsSpecificationTest {
 
     @Test
     fun `field may itself contain a selection set`() {
-        val response = deserialize(schema.executeBlocking("{actor{id, actualActor{name, age}}}"))
+        val response = deserialize(schema.executeBlockingGetOne("{actor{id, actualActor{name, age}}}"))
         val map = response.extract<Map<String, Any>>("data/actor/actualActor")
         MatcherAssert.assertThat(map, CoreMatchers.equalTo(mapOf("name" to "Boguś Linda", "age" to age)))
     }

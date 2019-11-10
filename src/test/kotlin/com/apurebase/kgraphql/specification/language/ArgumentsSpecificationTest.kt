@@ -1,10 +1,7 @@
 package com.apurebase.kgraphql.specification.language
 
+import com.apurebase.kgraphql.*
 import com.apurebase.kgraphql.Actor
-import com.apurebase.kgraphql.Specification
-import com.apurebase.kgraphql.defaultSchema
-import com.apurebase.kgraphql.deserialize
-import com.apurebase.kgraphql.executeEqualQueries
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -68,7 +65,8 @@ class ArgumentsSpecificationTest {
 
     @Test
     fun `many arguments can exist on given field`(){
-        val response = deserialize(schema.executeBlocking("{actor{favDishes(size: 2, prefix: \"b\")}}")) as Map<String, Any>
+        val response =
+            deserialize(schema.executeBlockingGetOne("{actor{favDishes(size: 2, prefix: \"b\")}}")) as Map<String, Any>
         assertThat (
                 response, equalTo(mapOf<String, Any>("data" to mapOf("actor" to mapOf("favDishes" to listOf("burger", "bread")))))
         )
@@ -88,7 +86,7 @@ class ArgumentsSpecificationTest {
                 }
             }
         """.trimIndent()
-        val response = deserialize(schema.executeBlocking(request)) as Map<String, Any>
+        val response = deserialize(schema.executeBlockingGetOne(request)) as Map<String, Any>
         assertThat(response, equalTo(mapOf<String, Any>(
             "data" to mapOf("actor" to mapOf(
                 "none" to age,
@@ -129,7 +127,7 @@ class ArgumentsSpecificationTest {
             }
         """.trimIndent()
 
-        val response = deserialize(schema.executeBlocking(request)) as Map<String, Any>
+        val response = deserialize(schema.executeBlockingGetOne(request)) as Map<String, Any>
         assertThat(response, equalTo(mapOf<String, Any>(
                 "data" to mapOf<String, Any>(
                         "actor" to mapOf<String, Any>(

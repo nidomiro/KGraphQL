@@ -26,14 +26,14 @@ class SourceTextSpecificationTest {
     @Test
     fun `invalid unicode character`() {
         expect<GraphQLError>("Syntax Error: Cannot contain the invalid character \"\\u0003\"."){
-            deserialize(schema.executeBlocking("\u0003"))
+            deserialize(schema.executeBlockingGetOne("\u0003"))
         }
     }
 
     @Test
     @Specification("2.1.1 Unicode")
     fun `ignore unicode BOM character`() {
-        val map = deserialize(schema.executeBlocking("\uFEFF{fizz}"))
+        val map = deserialize(schema.executeBlockingGetOne("\uFEFF{fizz}"))
         assertNoErrors(map)
         assertThat(map.extract<String>("data/fizz"), equalTo("buzz"))
     }
@@ -89,14 +89,14 @@ class SourceTextSpecificationTest {
     @Specification("2.1.9 Names")
     fun `names are case sensitive`(){
         invoking {
-            deserialize(schema.executeBlocking("{FIZZ}"))
+            deserialize(schema.executeBlockingGetOne("{FIZZ}"))
         } shouldThrow GraphQLError::class withMessage "Property FIZZ on Query does not exist"
 
         invoking {
-            deserialize(schema.executeBlocking("{Fizz}"))
+            deserialize(schema.executeBlockingGetOne("{Fizz}"))
         } shouldThrow GraphQLError::class withMessage "Property Fizz on Query does not exist"
 
-        val mapLowerCase = deserialize(schema.executeBlocking("{fizz}"))
+        val mapLowerCase = deserialize(schema.executeBlockingGetOne("{fizz}"))
         assertNoErrors(mapLowerCase)
         assertThat(mapLowerCase.extract<String>("data/fizz"), equalTo("buzz"))
     }

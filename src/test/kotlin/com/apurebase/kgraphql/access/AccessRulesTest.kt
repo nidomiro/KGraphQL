@@ -37,7 +37,7 @@ class AccessRulesTest {
     @Test
     fun `allow when matching`(){
         val kobe = deserialize (
-            schema.executeBlocking(request = "{black_mamba{name}}", context = context { +"LAKERS" })
+            schema.executeBlockingGetOne(request = "{black_mamba{name}}", context = context { +"LAKERS" })
         ).extract<String>("data/black_mamba/name")
 
         assertThat(kobe, equalTo("KOBE"))
@@ -47,7 +47,7 @@ class AccessRulesTest {
     fun `reject when not matching`(){
         expect<IllegalAccessException>("") {
             deserialize (
-                schema.executeBlocking(request = "{ black_mamba {id} }", context = context { +"LAKERS" })
+                schema.executeBlockingGetOne(request = "{ black_mamba {id} }", context = context { +"LAKERS" })
             ).extract<String>("data/black_mamba/id")
         }
     }
@@ -55,7 +55,7 @@ class AccessRulesTest {
     @Test
     fun `allow property resolver access rule`() {
         assertThat(
-            deserialize(schema.executeBlocking("{white_mamba {item}}")).extract<String>("data/white_mamba/item"),
+            deserialize(schema.executeBlockingGetOne("{white_mamba {item}}")).extract<String>("data/white_mamba/item"),
             equalTo("item")
         )
     }
@@ -63,7 +63,7 @@ class AccessRulesTest {
     @Test
     fun `reject property resolver access rule`() {
         expect<IllegalAccessException>("ILLEGAL ACCESS") {
-            schema.executeBlocking(request = "{black_mamba {item}}", context = context { +"LAKERS" })
+            schema.executeBlockingGetOne(request = "{black_mamba {item}}", context = context { +"LAKERS" })
         }
     }
 

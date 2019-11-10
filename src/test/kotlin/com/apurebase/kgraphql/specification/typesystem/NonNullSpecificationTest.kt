@@ -2,7 +2,10 @@ package com.apurebase.kgraphql.specification.typesystem
 
 import com.apurebase.kgraphql.*
 import com.apurebase.kgraphql.GraphQLError
-import org.amshove.kluent.*
+import org.amshove.kluent.invoking
+import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldThrow
+import org.amshove.kluent.with
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -18,7 +21,7 @@ class NonNullSpecificationTest {
             }
         }
         expect<NullPointerException> {
-            schema.executeBlocking("{nonNull}")
+            schema.executeBlockingGetOne("{nonNull}")
         }
     }
 
@@ -30,10 +33,10 @@ class NonNullSpecificationTest {
             }
         }
 
-        val responseOmittedInput = deserialize(schema.executeBlocking("{nullable}"))
+        val responseOmittedInput = deserialize(schema.executeBlockingGetOne("{nullable}"))
         assertThat(responseOmittedInput.extract<Any?>("data/nullable"), nullValue())
 
-        val responseNullInput = deserialize(schema.executeBlocking("{nullable(input: null)}"))
+        val responseNullInput = deserialize(schema.executeBlockingGetOne("{nullable(input: null)}"))
         assertThat(responseNullInput.extract<Any?>("data/nullable"), nullValue())
     }
 
@@ -45,7 +48,7 @@ class NonNullSpecificationTest {
             }
         }
         invoking {
-            schema.executeBlocking("{nonNull}")
+            schema.executeBlockingGetOne("{nonNull}")
         } shouldThrow GraphQLError::class with {
             message shouldEqual "Missing value for non-nullable argument input on the field 'nonNull'"
         }
@@ -59,7 +62,7 @@ class NonNullSpecificationTest {
             }
         }
 
-        schema.executeBlocking("query(\$arg: String!){nonNull(input: \$arg)}", "{\"arg\":\"SAD\"}")
+        schema.executeBlockingGetOne("query(\$arg: String!){nonNull(input: \$arg)}", "{\"arg\":\"SAD\"}")
     }
 
 }

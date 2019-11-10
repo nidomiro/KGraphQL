@@ -22,6 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KProperty1
@@ -53,20 +54,23 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         val root = jsonNodeFactory.objectNode()
         val data = root.putObject("data")
 
-        val resultMap = plan.toMapAsync {
-            writeOperation(
-                isSubscription = plan.isSubscription,
-                ctx = ExecutionContext(Variables(schema, variables, it.variables), context),
-                node = it,
-                operation = it.field as Field.Function<*, *>
-            )
+        return flow {
+            val resultMap = plan.toMapAsync {
+                writeOperation(
+                    isSubscription = plan.isSubscription,
+                    ctx = ExecutionContext(Variables(schema, variables, it.variables), context),
+                    node = it,
+                    operation = it.field as Field.Function<*, *>
+                )
+            }
+
+            for (operation in plan) {
+                data.set(operation.aliasOrKey, resultMap[operation])
+            }
+
+            emit(objectWriter.writeValueAsString(root))
         }
 
-        for (operation in plan) {
-            data.set(operation.aliasOrKey, resultMap[operation])
-        }
-
-        return objectWriter.writeValueAsString(root)
     }
 
     private suspend fun <T, R> Collection<T>.toMapAsync(block: suspend (T) -> R): Map<T, R> = coroutineScope {
