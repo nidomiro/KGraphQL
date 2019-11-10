@@ -6,9 +6,9 @@ import com.apurebase.kgraphql.request.Variables
 import com.apurebase.kgraphql.request.VariablesJson
 import com.apurebase.kgraphql.schema.DefaultSchema
 import com.apurebase.kgraphql.schema.introspection.TypeKind
-import com.apurebase.kgraphql.schema.model.ast.ArgumentNodes
 import com.apurebase.kgraphql.schema.model.FunctionWrapper
 import com.apurebase.kgraphql.schema.model.TypeDef
+import com.apurebase.kgraphql.schema.model.ast.ArgumentNodes
 import com.apurebase.kgraphql.schema.scalar.serializeScalar
 import com.apurebase.kgraphql.schema.structure.Field
 import com.apurebase.kgraphql.schema.structure.InputValue
@@ -17,27 +17,29 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.NullNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KProperty1
 
 
 @Suppress("UNCHECKED_CAST") // For valid structure there is no risk of ClassCastException
 class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, CoroutineScope {
-
     inner class ExecutionContext(
         val variables: Variables,
         val requestContext: Context
     )
-    override val coroutineContext: CoroutineContext = Job()
 
+    override val coroutineContext: CoroutineContext = Job()
     private val argumentsHandler = ArgumentsHandler(schema)
 
     private val jsonNodeFactory = JsonNodeFactory.instance
 
     private val dispatcher = schema.configuration.coroutineDispatcher
-
 
     private val objectWriter = schema.configuration.objectMapper.writer().let {
         if (schema.configuration.useDefaultPrettyPrinter) {
@@ -47,7 +49,7 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         }
     }
 
-    override suspend fun suspendExecute(plan: ExecutionPlan, variables: VariablesJson, context: Context): String {
+    override suspend fun execute(plan: ExecutionPlan, variables: VariablesJson, context: Context): Flow<String> {
         val root = jsonNodeFactory.objectNode()
         val data = root.putObject("data")
 
@@ -67,35 +69,33 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         return objectWriter.writeValueAsString(root)
     }
 
-    override fun execute(plan: ExecutionPlan, variables: VariablesJson, context: Context): String = runBlocking {
-        suspendExecute(plan, variables, context)
-    }
-
     private suspend fun <T, R> Collection<T>.toMapAsync(block: suspend (T) -> R): Map<T, R> = coroutineScope {
         val channel = Channel<Pair<T, R>>()
-        val jobs = map { item ->
-            launch(dispatcher) {
-                try {
-                    val res = block(item)
-                    channel.send(item to res)
-                } catch (e: Exception) {
-                    channel.close(e)
+        try {
+            val jobs = map { item ->
+                launch(dispatcher) {
+                    try {
+                        val res = block(item)
+                        channel.send(item to res)
+                    } catch (e: Exception) {
+                        channel.close(e)
+                    }
                 }
             }
-        }
-        val resultMap = mutableMapOf<T, R>()
-        repeat(size) {
-            try {
-                val (item, result) = channel.receive()
-                resultMap[item] = result
-            } catch (e: Exception) {
-                jobs.forEach { job: Job -> job.cancel() }
-                throw e
+            val resultMap = mutableMapOf<T, R>()
+            repeat(size) {
+                try {
+                    val (item, result) = channel.receive()
+                    resultMap[item] = result
+                } catch (e: Exception) {
+                    jobs.forEach { job: Job -> job.cancel() }
+                    throw e
+                }
             }
+            return@coroutineScope resultMap
+        } finally {
+            channel.close()
         }
-
-        channel.close()
-        resultMap
     }
 
     private suspend fun <T> writeOperation(isSubscription: Boolean, ctx: ExecutionContext, node: Execution.Node, operation: FunctionWrapper<T>): JsonNode {

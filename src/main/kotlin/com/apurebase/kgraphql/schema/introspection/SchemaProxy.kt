@@ -3,16 +3,16 @@ package com.apurebase.kgraphql.schema.introspection
 import com.apurebase.kgraphql.Context
 import com.apurebase.kgraphql.schema.structure.LookupSchema
 import com.apurebase.kgraphql.schema.structure.Type
+import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
 
 class SchemaProxy(var proxiedSchema : LookupSchema? = null) : LookupSchema {
-
     companion object {
+
         const val ILLEGAL_STATE_MESSAGE = "Missing proxied __Schema instance"
     }
-
     private fun getProxied() = proxiedSchema ?: throw IllegalStateException(ILLEGAL_STATE_MESSAGE)
 
     override val types: List<__Type>
@@ -44,7 +44,7 @@ class SchemaProxy(var proxiedSchema : LookupSchema? = null) : LookupSchema {
 
     override fun inputTypeByName(name: String): Type? = inputTypeByName(name)
 
-    override suspend fun execute(request: String, variables: String?, context: Context): String {
+    override suspend fun execute(request: String, variables: String?, context: Context): Flow<String> {
         return getProxied().execute(request, variables, context)
     }
 }

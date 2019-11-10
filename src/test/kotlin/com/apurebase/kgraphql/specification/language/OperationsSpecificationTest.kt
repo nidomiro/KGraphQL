@@ -1,11 +1,13 @@
 package com.apurebase.kgraphql.specification.language
 
-import com.apurebase.kgraphql.*
-import com.apurebase.kgraphql.schema.SchemaException
-import org.amshove.kluent.shouldEqual
 import com.apurebase.kgraphql.Specification
 import com.apurebase.kgraphql.defaultSchema
 import com.apurebase.kgraphql.executeEqualQueries
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.junit.Test
 
 data class Actor(var name : String? = "", var age: Int? = 0)
@@ -13,8 +15,6 @@ data class Actress(var name : String? = "", var age: Int? = 0)
 
 @Specification("2.3 Operations")
 class OperationsSpecificationTest {
-
-    //var subscriptionResult = ""
 
     val schema = defaultSchema {
 
@@ -26,28 +26,24 @@ class OperationsSpecificationTest {
             resolver { name : String -> Actor(name, 11) }
         }
 
-        /*subscription("subscriptionActor") {
-            resolver { subscription: String ->
-                subscribe(subscription, publisher, Actor()) {
-                    subscriptionResult = it
-                    println(it)
+        subscription("singleValueSubscription") {
+            resolver { ->
+                flow {
+                    emit("Value 1")
                 }
             }
         }
 
-        subscription("unsubscriptionActor") {
-            resolver { subscription: String ->
-                unsubscribe(subscription, publisher, Actor())
-            }
-        }
-
-        subscription("subscriptionActress") {
-            resolver { subscription: String ->
-                subscribe(subscription, publisher, Actress()) {
-                    subscriptionResult = it
+        subscription("multipleValueSubscriptionWithDelay") {
+            resolver { count: Int ->
+                flow {
+                    (1..count).forEach {
+                        delay(200)
+                        emit("Value $it")
+                    }
                 }
             }
-        }*/
+        }
     }
 
     @Test
@@ -69,31 +65,27 @@ class OperationsSpecificationTest {
         )
     }
 
-    /*@Test
+    @Test
     fun `handle subscription`(){
-        val subResult = schema.executeBlocking("subscription {subscriptionActor(subscription : \"mySubscription\"){name}}")
 
-        subscriptionResult = ""
-        schema.executeBlocking("mutation {createActor(name : \"Kurt Russel\"){name}}")
+        val count = 5
 
-        subscriptionResult shouldEqual "{\"data\":{\"name\":\"Kurt Russel\"}}"
+        runBlocking {
+            val singleResultList = schema.executeFlow("subscription {singleValueSubscription()}").toList()
+            assertThat(singleResultList, Matchers.hasSize(1))
+            assertThat(singleResultList[0], Matchers.containsString("Value 1"))
 
-        subscriptionResult = ""
-        schema.executeBlocking("mutation{createActor(name : \"Kurt Russel1\"){name}}")
-        subscriptionResult shouldEqual "{\"data\":{\"name\":\"Kurt Russel1\"}}"
+            val multipleResultList =
+                schema.executeFlow("subscription {multipleValueSubscriptionWithDelay(count: $count)}").toList()
+            assertThat(multipleResultList, Matchers.hasSize(count))
 
-        subscriptionResult = ""
-        schema.executeBlocking("mutation{createActor(name : \"Kurt Russel2\"){name}}")
-        subscriptionResult shouldEqual "{\"data\":{\"name\":\"Kurt Russel2\"}}"
 
-        schema.executeBlocking("subscription {unsubscriptionActor(subscription : \"mySubscription\"){name}}")
+        }
 
-        subscriptionResult = ""
-        schema.executeBlocking("mutation{createActor(name : \"Kurt Russel\"){name}}")
-        subscriptionResult shouldEqual ""
 
     }
 
+    /*
     @Test
     fun `Subscription return type must be the same as the publisher's`(){
         expect<SchemaException>("Subscription return type must be the same as the publisher's"){
