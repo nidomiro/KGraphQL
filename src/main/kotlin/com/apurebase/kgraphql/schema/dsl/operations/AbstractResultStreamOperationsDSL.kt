@@ -6,35 +6,35 @@ import kotlin.reflect.KFunction
 
 abstract class AbstractResultStreamOperationsDSL(name: String) : AbstractOperationDSL(name) {
 
-    fun <T> KFunction<Flow<T>>.toResolver() = resolver(FunctionWrapper.on(this))
+    fun <R> KFunction<Flow<R>>.toResolver() = resolver(FunctionWrapper.on(this))
 
-    fun <T> resolver(function: suspend () -> Flow<T>) =
+    fun <R> resolver(function: suspend () -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R> resolver(function: suspend (R) -> Flow<T>) =
+    fun <R, T> resolver(function: suspend (T) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E> resolver(function: suspend (R, E) -> Flow<T>) =
+    fun <R, T, E> resolver(function: suspend (T, E) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W> resolver(function: suspend (R, E, W) -> Flow<T>) =
+    fun <R, T, E, W> resolver(function: suspend (T, E, W) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q> resolver(function: suspend (R, E, W, Q) -> Flow<T>) =
+    fun <R, T, E, W, Q> resolver(function: suspend (T, E, W, Q) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A> resolver(function: suspend (R, E, W, Q, A) -> Flow<T>) =
+    fun <R, T, E, W, Q, A> resolver(function: suspend (T, E, W, Q, A) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S> resolver(function: suspend (R, E, W, Q, A, S) -> Flow<T>) =
+    fun <R, T, E, W, Q, A, S> resolver(function: suspend (T, E, W, Q, A, S) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S, B> resolver(function: suspend (R, E, W, Q, A, S, B) -> Flow<T>) =
+    fun <R, T, E, W, Q, A, S, B> resolver(function: suspend (T, E, W, Q, A, S, B) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S, B, U> resolver(function: suspend (R, E, W, Q, A, S, B, U) -> Flow<T>) =
+    fun <R, T, E, W, Q, A, S, B, U> resolver(function: suspend (T, E, W, Q, A, S, B, U) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S, B, U, C> resolver(function: suspend (R, E, W, Q, A, S, B, U, C) -> Flow<T>) =
+    fun <R, T, E, W, Q, A, S, B, U, C> resolver(function: suspend (T, E, W, Q, A, S, B, U, C) -> Flow<R>) =
         resolver(FunctionWrapper.on(function))
 }

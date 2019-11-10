@@ -5,30 +5,30 @@ import kotlin.reflect.KFunction
 
 abstract class AbstractSingleResultOperationsDSL(name: String) : AbstractOperationDSL(name) {
 
-    fun <T> KFunction<T>.toResolver() = resolver(FunctionWrapper.on(this))
+    fun <R> KFunction<R>.toResolver() = resolver(FunctionWrapper.on(this))
 
-    fun <T> resolver(function: suspend () -> T) = resolver(FunctionWrapper.on(function))
+    fun <R> resolver(function: suspend () -> R) = resolver(FunctionWrapper.on(function))
 
-    fun <T, R> resolver(function: suspend (R) -> T) = resolver(FunctionWrapper.on(function))
+    fun <R, T> resolver(function: suspend (T) -> R) = resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E> resolver(function: suspend (R, E) -> T) = resolver(FunctionWrapper.on(function))
+    fun <R, T, E> resolver(function: suspend (T, E) -> R) = resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W> resolver(function: suspend (R, E, W) -> T) = resolver(FunctionWrapper.on(function))
+    fun <R, T, E, W> resolver(function: suspend (T, E, W) -> R) = resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q> resolver(function: suspend (R, E, W, Q) -> T) = resolver(FunctionWrapper.on(function))
+    fun <R, T, E, W, Q> resolver(function: suspend (T, E, W, Q) -> R) = resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A> resolver(function: suspend (R, E, W, Q, A) -> T) = resolver(FunctionWrapper.on(function))
+    fun <R, T, E, W, Q, A> resolver(function: suspend (T, E, W, Q, A) -> R) = resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S> resolver(function: suspend (R, E, W, Q, A, S) -> T) =
+    fun <R, T, E, W, Q, A, S> resolver(function: suspend (T, E, W, Q, A, S) -> R) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S, B> resolver(function: suspend (R, E, W, Q, A, S, B) -> T) =
+    fun <R, T, E, W, Q, A, S, B> resolver(function: suspend (T, E, W, Q, A, S, B) -> R) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S, B, U> resolver(function: suspend (R, E, W, Q, A, S, B, U) -> T) =
+    fun <R, T, E, W, Q, A, S, B, U> resolver(function: suspend (T, E, W, Q, A, S, B, U) -> R) =
         resolver(FunctionWrapper.on(function))
 
-    fun <T, R, E, W, Q, A, S, B, U, C> resolver(function: suspend (R, E, W, Q, A, S, B, U, C) -> T) = resolver(
+    fun <R, T, E, W, Q, A, S, B, U, C> resolver(function: suspend (T, E, W, Q, A, S, B, U, C) -> R) = resolver(
         FunctionWrapper.on(function)
     )
 }
