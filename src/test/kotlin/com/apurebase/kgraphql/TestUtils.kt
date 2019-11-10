@@ -6,15 +6,20 @@ import com.apurebase.kgraphql.schema.dsl.SchemaBuilder
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.hamcrest.CoreMatchers
 import org.hamcrest.FeatureMatcher
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.amshove.kluent.shouldEqual
+import org.hamcrest.*
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.instanceOf
+import java.io.File
 
 val objectMapper = jacksonObjectMapper()
 
 fun deserialize(json: String) : Map<*,*> {
     return objectMapper.readValue(json, HashMap::class.java)
 }
+
+fun String.deserialize(): java.util.HashMap<*, *> = objectMapper.readValue(this, HashMap::class.java)
 
 fun getMap(map : Map<*,*>, key : String) : Map<*,*>{
     return map[key] as Map<*,*>
@@ -76,11 +81,11 @@ inline fun <reified T: Exception> expect(message: String? = null, block: () -> U
     }
 }
 
-fun executeEqualQueries(schema: Schema, expected: Map<*,*>, vararg queries : String){
+fun executeEqualQueries(schema: Schema, expected: Map<*,*>, vararg queries : String) {
     queries.map { request ->
-        deserialize(schema.execute(request))
+        schema.executeBlocking(request).deserialize()
     }.forEach { map ->
-        assertThat(map, CoreMatchers.equalTo(expected))
+        map shouldEqual expected
     }
 }
 
@@ -90,4 +95,12 @@ class ExceptionMessageMatcher(message: String?)
     override fun featureValueOf(actual: Exception?): String? = actual?.message
 }
 
+@Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+fun Any.getResourceAsFile(name: String): File = this::class.java.classLoader.getResource(name).toURI().let(::File)
 
+object ResourceFiles {
+    val kitchenSinkQuery = getResourceAsFile("kitchen-sink.graphql").readText()
+}
+
+
+const val d = '$'

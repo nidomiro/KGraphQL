@@ -6,14 +6,14 @@ import com.apurebase.kgraphql.schema.dsl.operations.MutationDSL
 import com.apurebase.kgraphql.schema.dsl.operations.QueryDSL
 import com.apurebase.kgraphql.schema.dsl.operations.SubscriptionDSL
 import com.apurebase.kgraphql.schema.dsl.types.*
-import com.apurebase.kgraphql.schema.model.EnumValueDef
-import com.apurebase.kgraphql.schema.model.MutableSchemaDefinition
-import com.apurebase.kgraphql.schema.model.TypeDef
-import com.apurebase.kgraphql.schema.structure2.SchemaCompilation
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.apurebase.kgraphql.schema.model.EnumValueDef
+import com.apurebase.kgraphql.schema.model.TypeDef
+import com.apurebase.kgraphql.schema.model.MutableSchemaDefinition
+import com.apurebase.kgraphql.schema.structure.SchemaCompilation
 import kotlin.reflect.KClass
 
 /**
@@ -66,8 +66,9 @@ class SchemaBuilder {
 
     fun <T : Any> stringScalar(kClass: KClass<T>, block: ScalarDSL<T, String>.() -> Unit) {
         val scalar = StringScalarDSL(kClass).apply(block)
+        val coercion = scalar.createCoercion()
         configuration.appendMapper(scalar, kClass)
-        model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
+        model.addScalar(TypeDef.Scalar(scalar.name, kClass, coercion, scalar.description))
     }
 
     inline fun <reified T : Any> stringScalar(noinline block: ScalarDSL<T, String>.() -> Unit) {
@@ -76,8 +77,9 @@ class SchemaBuilder {
 
     fun <T : Any> intScalar(kClass: KClass<T>, block: ScalarDSL<T, Int>.() -> Unit) {
         val scalar = IntScalarDSL(kClass).apply(block)
+        val coercion = scalar.createCoercion()
         configuration.appendMapper(scalar, kClass)
-        model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
+        model.addScalar(TypeDef.Scalar(scalar.name, kClass, coercion, scalar.description))
     }
 
     inline fun <reified T : Any> intScalar(noinline block: ScalarDSL<T, Int>.() -> Unit) {
@@ -86,8 +88,9 @@ class SchemaBuilder {
 
     fun <T : Any> floatScalar(kClass: KClass<T>, block: ScalarDSL<T, Double>.() -> Unit) {
         val scalar = DoubleScalarDSL(kClass).apply(block)
+        val coercion = scalar.createCoercion()
         configuration.appendMapper(scalar, kClass)
-        model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
+        model.addScalar(TypeDef.Scalar(scalar.name, kClass, coercion, scalar.description))
     }
 
     inline fun <reified T : Any> floatScalar(noinline block: ScalarDSL<T, Double>.() -> Unit) {
@@ -96,8 +99,9 @@ class SchemaBuilder {
 
     fun <T : Any> longScalar(kClass: KClass<T>, block: ScalarDSL<T, Long>.() -> Unit) {
         val scalar = LongScalarDSL(kClass).apply(block)
+        val coercion = scalar.createCoercion()
         configuration.appendMapper(scalar, kClass)
-        model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
+        model.addScalar(TypeDef.Scalar(scalar.name, kClass, coercion, scalar.description))
     }
 
     inline fun <reified T : Any> longScalar(noinline block: ScalarDSL<T, Long>.() -> Unit) {
@@ -106,8 +110,9 @@ class SchemaBuilder {
 
     fun <T : Any> booleanScalar(kClass: KClass<T>, block: ScalarDSL<T, Boolean>.() -> Unit) {
         val scalar = BooleanScalarDSL(kClass).apply(block)
+        val coercion = scalar.createCoercion()
         configuration.appendMapper(scalar, kClass)
-        model.addScalar(TypeDef.Scalar(scalar.name, kClass, scalar.createCoercion(), scalar.description))
+        model.addScalar(TypeDef.Scalar(scalar.name, kClass, coercion, scalar.description))
     }
 
     inline fun <reified T : Any> booleanScalar(noinline block: ScalarDSL<T, Boolean>.() -> Unit) {
@@ -189,7 +194,7 @@ class SchemaBuilder {
     }
 
     inline fun <reified T : Any> inputType() {
-        inputType(T::class, {})
+        inputType(T::class) {}
     }
 }
 
@@ -199,9 +204,7 @@ inline fun <T : Any, reified Raw : Any> SchemaConfigurationDSL.appendMapper(
 ) {
     objectMapper.registerModule(SimpleModule().addDeserializer(kClass.java, object : UsesDeserializer<T>() {
         override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): T? {
-            return scalar
-                .createCoercion()
-                .deserialize(p.readValueAs(Raw::class.java))
+            return scalar.deserialize?.invoke(p.readValueAs(Raw::class.java))
         }
     }))
 }

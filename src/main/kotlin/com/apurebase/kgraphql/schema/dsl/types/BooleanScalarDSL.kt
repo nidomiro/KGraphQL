@@ -1,6 +1,7 @@
 package com.apurebase.kgraphql.schema.dsl.types
 
 import com.apurebase.kgraphql.schema.SchemaException
+import com.apurebase.kgraphql.schema.model.ast.ValueNode
 import com.apurebase.kgraphql.schema.scalar.BooleanScalarCoercion
 import com.apurebase.kgraphql.schema.scalar.ScalarCoercion
 import kotlin.reflect.KClass
@@ -17,7 +18,7 @@ class BooleanScalarDSL<T : Any>(kClass: KClass<T>) : ScalarDSL<T, Boolean>(kClas
 
             override fun serialize(instance: T): Boolean = serializeImpl(instance)
 
-            override fun deserialize(raw: Boolean): T = deserializeImpl(raw)
+            override fun deserialize(raw: Boolean, valueNode: ValueNode?): T = deserializeImpl(raw)
         }
     }
 }

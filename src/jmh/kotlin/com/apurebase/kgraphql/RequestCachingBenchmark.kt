@@ -36,6 +36,6 @@ open class RequestCachingBenchmark {
 
     @Benchmark
     fun benchmark() : String {
-        return schema.execute("{one{name, quantity, active}, two(name : \"FELLA\"){range{start, endInclusive}}, three{id}}")
+        return schema.executeBlocking("{one{name, quantity, active}, two(name : \"FELLA\"){range{start, endInclusive}}, three{id}}")
     }
 }
