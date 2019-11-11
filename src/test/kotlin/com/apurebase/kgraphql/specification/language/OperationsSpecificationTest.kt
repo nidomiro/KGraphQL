@@ -30,7 +30,7 @@ class OperationsSpecificationTest {
         subscription("singleValueSubscription") {
             resolver { ->
                 flow {
-                    emit("Value 1")
+                    emit(Actor("singleValueSubscription", 1))
                 }
             }
         }
@@ -40,7 +40,7 @@ class OperationsSpecificationTest {
                 flow {
                     (1..count).forEach {
                         delay(200)
-                        emit("Value $it")
+                        emit(Actor("multipleValueSubscriptionWithDelay", it))
                     }
                 }
             }
@@ -67,23 +67,25 @@ class OperationsSpecificationTest {
     }
 
     @Test
-    fun `handle subscription`(){
+    fun `handle singleValue Subscription`() {
+        runBlocking {
+            val singleResultList = schema.execute("subscription {singleValueSubscription {name, age} }").toList()
+            assertThat(singleResultList, Matchers.hasSize(1))
+            assertThat(singleResultList[0], Matchers.containsString("Value 1"))
+        }
+    }
 
+    @Test
+    fun `handle multipleValue Subscription`() {
         val count = 5
 
         runBlocking {
-            val singleResultList = schema.execute("subscription {singleValueSubscription()}").toList()
-            assertThat(singleResultList, Matchers.hasSize(1))
-            assertThat(singleResultList[0], Matchers.containsString("Value 1"))
-
             val multipleResultList =
-                schema.execute("subscription {multipleValueSubscriptionWithDelay(count: $count)}").toList()
+                schema.execute("subscription {multipleValueSubscriptionWithDelay(count: $count) {name, age} }").toList()
             assertThat(multipleResultList, Matchers.hasSize(count))
 
 
         }
-
-
     }
 
     /*

@@ -11,19 +11,14 @@ import com.apurebase.kgraphql.schema.directive.Directive
 import com.apurebase.kgraphql.schema.introspection.SchemaProxy
 import com.apurebase.kgraphql.schema.introspection.TypeKind
 import com.apurebase.kgraphql.schema.introspection.__Schema
-import com.apurebase.kgraphql.schema.model.BaseOperationDef
-import com.apurebase.kgraphql.schema.model.FunctionWrapper
-import com.apurebase.kgraphql.schema.model.InputValueDef
-import com.apurebase.kgraphql.schema.model.PropertyDef
-import com.apurebase.kgraphql.schema.model.QueryDef
-import com.apurebase.kgraphql.schema.model.SchemaDefinition
-import com.apurebase.kgraphql.schema.model.Transformation
-import com.apurebase.kgraphql.schema.model.TypeDef
+import com.apurebase.kgraphql.schema.model.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
-import kotlin.reflect.full.*
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("UNCHECKED_CAST")
@@ -153,6 +148,7 @@ class SchemaCompilation(
     }
 
     private fun handlePossiblyWrappedType(kType : KType, typeCategory: TypeCategory) : Type = when {
+        kType.isFlow -> handleFlowType(kType, typeCategory)
         kType.isIterable() -> handleCollectionType(kType, typeCategory)
         kType.jvmErasure == Context::class && typeCategory == TypeCategory.INPUT -> contextType
         kType.jvmErasure == Context::class && typeCategory == TypeCategory.QUERY -> throw SchemaException("Context type cannot be part of schema")
@@ -171,16 +167,22 @@ class SchemaCompilation(
         return applyNullability(kType, nullableListType)
     }
 
+    private fun handleFlowType(kType: KType, typeCategory: TypeCategory): Type {
+        val type = kType.arguments.firstOrNull()?.type
+            ?: throw IllegalArgumentException("Type of Flow cannot be null or a star projection")
+        return handleSimpleType(type, typeCategory)
+    }
+
     private fun handleSimpleType(kType: KType, typeCategory: TypeCategory): Type {
         val simpleType = handleRawType(kType.jvmErasure, typeCategory)
         return applyNullability(kType, simpleType)
     }
 
     private fun applyNullability(kType: KType, simpleType: Type): Type {
-        if (!kType.isMarkedNullable) {
-            return Type.NonNull(simpleType)
+        return if (!kType.isMarkedNullable) {
+            Type.NonNull(simpleType)
         } else {
-            return simpleType
+            simpleType
         }
     }
 
