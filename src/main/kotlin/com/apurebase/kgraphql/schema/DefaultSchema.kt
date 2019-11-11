@@ -5,7 +5,7 @@ import com.apurebase.kgraphql.configuration.SchemaConfiguration
 import com.apurebase.kgraphql.request.CachingDocumentParser
 import com.apurebase.kgraphql.request.Parser
 import com.apurebase.kgraphql.request.VariablesJson
-import com.apurebase.kgraphql.schema.execution.ParallelRequestExecutor
+import com.apurebase.kgraphql.schema.execution.FlowAwareRequestExecutor
 import com.apurebase.kgraphql.schema.execution.RequestExecutor
 import com.apurebase.kgraphql.schema.introspection.__Schema
 import com.apurebase.kgraphql.schema.model.ast.NameNode
@@ -18,17 +18,19 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.jvm.jvmErasure
 
-class DefaultSchema (
-        internal val configuration: SchemaConfiguration,
-        internal val model : SchemaModel
-) : Schema , __Schema by model, LookupSchema {
+class DefaultSchema(
+    internal val configuration: SchemaConfiguration,
+    internal val model: SchemaModel
+) : Schema, __Schema by model, LookupSchema {
     companion object {
 
         val OPERATION_NAME_PARAM = NameNode("operationName", null)
     }
-    private val requestExecutor : RequestExecutor = ParallelRequestExecutor(this)
 
-     private val requestInterpreter : RequestInterpreter = RequestInterpreter(model)
+    //private val requestExecutor: RequestExecutor = ParallelRequestExecutor(this)
+    private val requestExecutor: RequestExecutor = FlowAwareRequestExecutor(this)
+
+    private val requestInterpreter: RequestInterpreter = RequestInterpreter(model)
 
     private val cacheParser: CachingDocumentParser by lazy { CachingDocumentParser(configuration.documentParserCacheMaximumSize) }
 

@@ -331,10 +331,6 @@ class ParallelRequestExecutor(val schema: DefaultSchema) : RequestExecutor, Coro
         //exceptions are not caught on purpose to pass up business logic errors
         return when {
             hasReceiver -> invoke(receiver, *transformedArgs.toTypedArray())
-            isSubscription -> {
-                val subscriptionArgs = children.map { (it as Execution.Node).aliasOrKey }
-                invoke(transformedArgs, subscriptionArgs, objectWriter)
-            }
             else -> invoke(*transformedArgs.toTypedArray())
         }
     }
